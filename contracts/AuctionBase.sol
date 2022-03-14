@@ -3,7 +3,7 @@
 pragma solidity ^0.8.1;
 
 import "../interfaces/IAuction.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
 
 struct AuctionBid{
     address payable bidder;
@@ -24,14 +24,15 @@ contract AuctionBase is IAuction, Ownable{
     AuctionBid[] bids;
     address public auctionOwner;
     AuctionStatus public auctionStatus;
+    address private ahAddress;
 
     constructor(uint _reservePrice,
                 uint _startPrice,
                 address _ahAddress,
-                string _auctionName,
+                bytes32 _auctionName,
                 uint _auctionId) {
 
-        _owner = _ahAddress; //owner of this is auction house address which will call methods on this
+        ahAddress = _ahAddress; //owner of this is auction house address which will call methods on this
         reservePrice = _reservePrice;
         startPrice = _startPrice;
         startTime = block.timestamp;
@@ -41,12 +42,12 @@ contract AuctionBase is IAuction, Ownable{
         auctionStatus = AuctionStatus.Open;
     }
 
-   function getLastBid() external pure returns(AuctionBid){
+   function getLastBid() external view returns(AuctionBid memory){
        return bids[bids.length-1];
    }
 
    function makeBid() external returns (bool){
-       
+
    }
    function removeBid() external returns (bool){
 
