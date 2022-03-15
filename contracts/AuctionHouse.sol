@@ -7,7 +7,7 @@ import "./PhysicalAuction.sol";
 
 contract AuctionHouse is Ownable{
     uint public numberofAuctions = 0;
-    event AuctionCreated(address indexed _auctionOwner, uint indexed _auctionId, uint _startPrice, uint _reservePrice);
+    event AuctionCreated(address indexed _auctionOwner, uint indexed _auctionId, uint _startPrice, uint _reservePrice, address indexed _auctionContract);
     event AuctionBidSuccessful(address indexed _bidderAddress, uint indexed _auctionId, uint bidValue);
     event AuctionEndedWithWinningBid(address indexed _winningBidder, uint indexed _auctionId);
     event AuctionEndedWithNoWinningBid(uint indexed _auctionId);
@@ -24,13 +24,13 @@ contract AuctionHouse is Ownable{
         require(_startPrice < _reservePrice, "starting price of auction has to be less than reserve price");
         uint auctionId = numberofAuctions++;
 
-        address newAuction = address(new PhysicalAuction(_reservePrice, _startPrice, address(this),
+        address auction = address(new PhysicalAuction(_reservePrice, _startPrice, address(this),
                                                  _auctionName, auctionId));
         
-        auctions[auctionId] = newAuction;
+        auctions[auctionId] = auction;
         auctionsRunByUser[msg.sender].push(auctionId);
-                //Contract con = Contract(newContracts[0]);
+                //Contract con = Contract(auctions[auctionId]);
         
-        emit AuctionCreated(msg.sender, auctionId, _startPrice, _reservePrice);
+        emit AuctionCreated(msg.sender, auctionId, _startPrice, _reservePrice, auction);
     }
 }
