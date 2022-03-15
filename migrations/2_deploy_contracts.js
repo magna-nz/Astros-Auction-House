@@ -1,4 +1,5 @@
 const AuctionHouse = artifacts.require("AuctionHouse.sol");
+
 //const PhysicalAuction = artifacts.require("PhysicalAuction.sol");
 
 require("dotenv").config({path: "../.env"});

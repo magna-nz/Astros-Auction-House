@@ -14,7 +14,7 @@ struct AuctionBid{
 enum AuctionStatus { Open, Finished }
 
 
-abstract contract AuctionBase is IAuction, Ownable{
+contract AuctionBase is IAuction, Ownable{
     bool public hasEnded;
     uint public reservePrice;
     uint public startPrice;

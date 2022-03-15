@@ -5,7 +5,7 @@ import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import "./AuctionBase.sol";
 import "./PhysicalAuction.sol";
 
-contract AuctionHouse is Ownable{
+contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not let us view details. Fix)
     uint public numberofAuctions = 0;
     event AuctionCreated(address indexed _auctionOwner, uint indexed _auctionId, uint _startPrice, uint _reservePrice, address indexed _auctionContract);
     event AuctionBidSuccessful(address indexed _bidderAddress, uint indexed _auctionId, uint bidValue);
