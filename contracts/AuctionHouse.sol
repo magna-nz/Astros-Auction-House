@@ -33,4 +33,19 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
         
         emit AuctionCreated(msg.sender, auctionId, _startPrice, _reservePrice, auction);
     }
+
+    //Get auctions owned by a user
+    //todo: gas consumption
+    //todo: does memory cost gas? or a view function cost gas?
+    function getAuctionsRunByUser(address _address) external view returns (address[] memory){
+        require(msg.sender == _address, "you can only see auctions run by yourself");
+        
+        uint[] memory userAuctionIds = auctionsRunByUser[_address];
+        address[] memory userAuctionContracts;
+
+        for (uint i = 0; i < userAuctionIds.length; i++){
+            userAuctionContracts[i] = auctions[userAuctionIds[i]];
+        }
+        return userAuctionContracts;
+    }
 }
