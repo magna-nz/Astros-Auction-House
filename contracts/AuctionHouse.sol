@@ -6,7 +6,7 @@ import "./AuctionBase.sol";
 import "./PhysicalAuction.sol";
 
 contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not let us view details. Fix)
-    uint public numberofAuctions = 0;
+    uint public numberOfAuctions = 0;
     event AuctionCreated(address indexed _auctionOwner, uint indexed _auctionId, uint _startPrice, uint _reservePrice, address indexed _auctionContract);
     event AuctionBidSuccessful(address indexed _bidderAddress, uint indexed _auctionId, uint bidValue);
     event AuctionEndedWithWinningBid(address indexed _winningBidder, uint indexed _auctionId);
@@ -21,8 +21,8 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
 
 
     function createPhysicalAuction(uint _reservePrice, uint _startPrice, bytes32 _auctionName) external {
-        require(_startPrice < _reservePrice, "starting price of auction has to be less than reserve price");
-        uint auctionId = numberofAuctions++;
+        require(_startPrice < _reservePrice, "Invalid start price");
+        uint auctionId = numberOfAuctions++;
 
         address auction = address(new PhysicalAuction(_reservePrice, _startPrice, address(this),
                                                  _auctionName, auctionId));
