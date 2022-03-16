@@ -1,12 +1,9 @@
-//sending startprice > reserve price error
-//createPhysicalAuction
-
 const { assert } = require('chai');
 const {
-    BN,           // Big Number support
-    constants,    // Common constants, like the zero address and largest integers
+    BN, 
+    constants, 
     expectEvent,  // Assertions for emitted events
-    expectRevert, // Assertions for transactions that should fail
+    expectRevert,
   } = require('.././node_modules/@openzeppelin/test-helpers');
 
 const AuctionHouse = artifacts.require("AuctionHouse");
@@ -16,7 +13,7 @@ contract("AuctionHouse", async (accounts) => {
         this.ah = await AuctionHouse.new();
     });
 
-    it("when start price is less than reserve price, revert", async () => {
+    it("revert when start price is less than reserve price", async () => {
         await expectRevert.unspecified(
             this.ah.createPhysicalAuction(256, 300, "0x543645645", {from: accounts[0]})
         );
@@ -26,6 +23,15 @@ contract("AuctionHouse", async (accounts) => {
         assert.equal(numberOfAuctions, 0);
     });
 
-    
+    it("can successfully create auction", async () => {
+        let response = await this.ah.createPhysicalAuction(256, 100, "0x543645645", {from: accounts[0]})
+
+        //check receipt to make sure every was called
+        expectEvent(response, 'AuctionCreated');
+
+        //assert one auctions was created
+        var numberOfAuctions = await this.ah.numberOfAuctions();
+        assert.equal(numberOfAuctions, 1);
+    });
 });
 
