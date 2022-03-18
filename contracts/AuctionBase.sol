@@ -14,7 +14,9 @@ struct AuctionBid{
 enum AuctionStatus { Open, Finished }
 
 //todo: move IAuctoin to derived class
-contract AuctionBase is IAuction, Ownable{ //
+//todo: change name of class to just auction
+contract AuctionBase is IAuction, Ownable{
+    //todo: refactor for variable packing
     bool public hasEnded;
     uint public reservePrice;
     uint public startPrice;
@@ -46,9 +48,12 @@ contract AuctionBase is IAuction, Ownable{ //
        return bids[bids.length-1];
    }
 
+   //can remove
    function makeBid() external returns (bool){
 
    }
+
+
    function removeBid() external returns (bool){
 
    } 
@@ -59,7 +64,7 @@ contract AuctionBase is IAuction, Ownable{ //
 
     function getBidByIndex(uint _index) public view returns (AuctionBid memory){
         //if statement? require? assert?
-        require(bids.length <= _index, "index out of bounds");
+        assert(_index <= bids.length);
         return bids[_index];
     }
 

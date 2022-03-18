@@ -2,12 +2,15 @@
 pragma solidity ^0.8.0;
 
 import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
+import ".././node_modules/@openzeppelin/contracts/utils/Counters.sol";
 import "./AuctionBase.sol";
 import "./PhysicalAuction.sol";
 
+
 contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not let us view details. Fix)
-    uint public numberOfAuctions = 0;
-    uint public auctionIdCounter = 0;
+    using Counters for Counters.Counter;
+    Counters.Counter public numberOfAuctions;
+    Counters.Counter private _auctionIdCounter;
     event AuctionCreated(address indexed _auctionOwner, uint indexed _auctionId, uint _startPrice, uint _reservePrice, address indexed _auctionContract);
     event AuctionBidSuccessful(address indexed _bidderAddress, uint indexed _auctionId, uint bidValue);
     event AuctionEndedWithWinningBid(address indexed _winningBidder, uint indexed _auctionId);
@@ -17,7 +20,7 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     mapping(uint => address) auctions; //auction ID => Auction child contract
     mapping(address => uint[]) public auctionsRunByUser; //points to index in auctions the current user has
     mapping(address => uint[]) public auctionsBidOnByUser; //points to index of bids the user has on auctions
-    mapping(address => uint256) public lockedBalanceInBids; //balance locked in bids for auctions as of current
+    mapping(address => uint) public lockedBalanceInBids; //balance locked in bids for auctions as of current
 
 
     constructor() {
@@ -26,16 +29,16 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
 
     function createPhysicalAuction(uint _reservePrice, uint _startPrice, bytes32 _auctionName) external {
         require(_startPrice < _reservePrice, "Invalid start price");
-        uint auctionId = auctionIdCounter++; //generate this elsewhere
+        _auctionIdCounter.increment(); //not incrementing. use Counter.Counter
 
         address auction = address(new PhysicalAuction(_reservePrice, _startPrice, address(this),
-                                                 _auctionName, auctionId));
+                                                 _auctionName, _auctionIdCounter.current()));
         
-        auctions[auctionId] = auction;
-        auctionsRunByUser[msg.sender].push(auctionId);
+        auctions[_auctionIdCounter.current()] = auction;
+        auctionsRunByUser[msg.sender].push(_auctionIdCounter.current());
                 //Contract con = Contract(auctions[auctionId]);
         
-        emit AuctionCreated(msg.sender, auctionId, _startPrice, _reservePrice, auction);
+        emit AuctionCreated(msg.sender, _auctionIdCounter.current(), _startPrice, _reservePrice, auction);
     }
 
     //Get the bids on an auction by its Auction ID
@@ -66,7 +69,8 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     //Place a bid on an auction
     function placeBid(uint _auctionId) external payable {
         //require(_auctionId <= numberofAuctions, "AuctionID does not exist");
-        AuctionBase auction = AuctionBase(auctions[_auctionId]);
+        address dx = auctions[_auctionId];
+        AuctionBase auction = AuctionBase(dx);
         require(auction.auctionStatus() != AuctionStatus.Finished, "You can't bid on an auction that's ended");
         require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
 
@@ -81,7 +85,7 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
         AuctionBid memory newAuctionBid = AuctionBid({
             bid: msg.value,
             bidder: payable(msg.sender),
-            timestamp: block.timestamp
+            timestamp: block.timestamp //todo: timestamp can be manipulated by miner
         });
 
         auction.placeBidOnAuction(newAuctionBid);
