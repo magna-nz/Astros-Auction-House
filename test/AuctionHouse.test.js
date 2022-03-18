@@ -96,26 +96,54 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("can make bid on auction with bids already", async () => {
-        // await expectRevert.unspecified(
-        //     this.ah.createPhysicalAuction(256, 300, "0x543645645", {from: accounts[0]})
-        // );
+        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", {from: accounts[0]});
+        //todo: get the auctionid from the log event
+        expectEvent(createAuction, 'AuctionCreated');
+
+        //place the bid
+        var firstBid = await this.ah.placeBid(1,  {from: accounts[1], value:10000000});
+        expectEvent(firstBid, 'AuctionBidSuccessful');
+
+        var secondBid = await this.ah.placeBid(1,  {from: accounts[2], value:12000000});
+        expectEvent(secondBid, 'AuctionBidSuccessful');
+
+
+        var lockedBalanceForBidder = await this.ah.lockedBalanceInBids(accounts[1]);
+        assert.equal(lockedBalanceForBidder, 10000000);
+
+        var lockedBalanceForBidder = await this.ah.lockedBalanceInBids(accounts[2]);
+        assert.equal(lockedBalanceForBidder, 12000000);
+
+        //check bid length on auction contract, should be 2
+
+        //check auctionsbidbyuser has 2 item in the array
     });
 
     it("when an address makes a bid on auction theyve already bidded on - locked balance should be the sum", async () => {
-        // await expectRevert.unspecified(
-        //     this.ah.createPhysicalAuction(256, 300, "0x543645645", {from: accounts[0]})
-        // );
+        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", {from: accounts[0]});
+        //todo: get the auctionid from the log event
+        expectEvent(createAuction, 'AuctionCreated');
+
+        var firstBidInWei = 10000000;
+        var secondBidInWei = 12000000;
+
+        //place the bid
+        var firstBid = await this.ah.placeBid(1,  {from: accounts[1], value: firstBidInWei});
+        expectEvent(firstBid, 'AuctionBidSuccessful');
+
+        var secondBid = await this.ah.placeBid(1,  {from: accounts[1], value:secondBidInWei});
+        expectEvent(secondBid, 'AuctionBidSuccessful');
+
+
+        //sum of
+        var lockedBalanceForBidder = await this.ah.lockedBalanceInBids(accounts[1]);
+        assert.equal(lockedBalanceForBidder, (firstBidInWei+secondBidInWei));
+
+        var lockedBalanceForBidder = await this.ah.lockedBalanceInBids(accounts[2]);
+        assert.equal(lockedBalanceForBidder, 0);
+
+        //check bid length on auction contract, should be 2
+
+        //check auctionsbidbyuser has 2 item in the array
     });
-
-
 });
-
-/* place bid tests
-*
-*
-*
-*
-*
-*
-*/
-
