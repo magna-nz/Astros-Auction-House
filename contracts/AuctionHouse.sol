@@ -33,7 +33,7 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
 
         address auction = address(new PhysicalAuction(_reservePrice, _startPrice, address(this),
                                                  _auctionName, _auctionIdCounter.current()));
-        
+        numberOfAuctions.increment();
         auctions[_auctionIdCounter.current()] = auction;
         auctionsRunByUser[msg.sender].push(_auctionIdCounter.current());
                 //Contract con = Contract(auctions[auctionId]);
@@ -68,9 +68,7 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
 
     //Place a bid on an auction
     function placeBid(uint _auctionId) external payable {
-        //require(_auctionId <= numberofAuctions, "AuctionID does not exist");
-        address dx = auctions[_auctionId];
-        AuctionBase auction = AuctionBase(dx);
+        AuctionBase auction = AuctionBase(auctions[_auctionId]);
         require(auction.auctionStatus() != AuctionStatus.Finished, "You can't bid on an auction that's ended");
         require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
 

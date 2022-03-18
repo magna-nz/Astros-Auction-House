@@ -33,5 +33,46 @@ contract("AuctionHouse", async (accounts) => {
         var numberOfAuctions = await this.ah.numberOfAuctions();
         assert.equal(numberOfAuctions, 1);
     });
+
+    it("auction owner cant bid on his own auction", async () => {
+        // await expectRevert.unspecified(
+        //     this.ah.createPhysicalAuction(256, 300, "0x543645645", {from: accounts[0]})
+        // );
+    });
+
+    it("can make bid on an auction with no bids", async () => {
+        // await expectRevert.unspecified(
+        //     this.ah.createPhysicalAuction(256, 300, "0x543645645", {from: accounts[0]})
+        // );
+    });
+
+    it("make a bid less than the current high bid and revert", async () => {
+        // await expectRevert.unspecified(
+        //     this.ah.createPhysicalAuction(256, 300, "0x543645645", {from: accounts[0]})
+        // );
+    });
+
+    it("can make bid on auction with bids already", async () => {
+        // await expectRevert.unspecified(
+        //     this.ah.createPhysicalAuction(256, 300, "0x543645645", {from: accounts[0]})
+        // );
+    });
+
+    it("when an address makes a bid on auction theyve already bidded on - locked balance should be the sum", async () => {
+        // await expectRevert.unspecified(
+        //     this.ah.createPhysicalAuction(256, 300, "0x543645645", {from: accounts[0]})
+        // );
+    });
+
+
 });
+
+/* place bid tests
+*
+*
+*
+*
+*
+*
+*/
 
