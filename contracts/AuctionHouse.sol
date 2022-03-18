@@ -76,7 +76,7 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
         if (auction.getBidCount() != 0){
             AuctionBid memory lastAuctionBid = auction.getBidByIndex(auction.getBidCount() - 1); //todo: safemath
             //lastAuctionBid = auction.bids[auction.getBidCount() - 1];   
-            require(msg.value >= lastAuctionBid.bid, "bid not high enough");//PrimitiveLib.append("Bid must higher than current bid of ", PrimitiveLib.uintToString(lastAuctionBid.bid)));
+            require(msg.value >= lastAuctionBid.bid, "bid not high enough");
         }
         
         //add the bid to the auction

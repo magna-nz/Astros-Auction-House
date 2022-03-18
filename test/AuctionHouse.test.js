@@ -35,9 +35,19 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("auction owner cant bid on his own auction", async () => {
-        // await expectRevert.unspecified(
-        //     this.ah.createPhysicalAuction(256, 300, "0x543645645", {from: accounts[0]})
-        // );
+        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", {from: accounts[0]});
+        
+        //try place bid
+        await expectRevert.unspecified(
+            this.ah.placeBid(1,  {from: accounts[0], value:10000000})
+        );
+
+        //make sure no bids have been added
+        //todo: call the get bids by auction ID to check when that's implemented
+        
+        //no lockedbalance for user
+        var lockedBalance = await this.ah.lockedBalanceInBids(accounts[0]);
+        assert.equal(lockedBalance, 0);
     });
 
     it("can make bid on an auction with no bids", async () => {
