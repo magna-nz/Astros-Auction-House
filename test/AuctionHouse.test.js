@@ -2,7 +2,7 @@ const { assert } = require('chai');
 const {
     BN, 
     constants, 
-    expectEvent,  // Assertions for emitted events
+    expectEvent, 
     expectRevert,
   } = require('.././node_modules/@openzeppelin/test-helpers');
 
@@ -36,7 +36,7 @@ contract("AuctionHouse", async (accounts) => {
 
     it("auction owner cant bid on his own auction", async () => {
         var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", {from: accounts[0]});
-        
+
         //try place bid
         await expectRevert.unspecified(
             this.ah.placeBid(1,  {from: accounts[0], value:10000000})
@@ -51,15 +51,48 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("can make bid on an auction with no bids", async () => {
-        // await expectRevert.unspecified(
-        //     this.ah.createPhysicalAuction(256, 300, "0x543645645", {from: accounts[0]})
-        // );
+        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", {from: accounts[0]});
+        //todo: get the auctionid from the log event
+        expectEvent(createAuction, 'AuctionCreated');
+
+        //place the bid
+        var bid = await this.ah.placeBid(1,  {from: accounts[1], value:10000000});
+        expectEvent(bid, 'AuctionBidSuccessful');
+
+        //checked lockedbalance
+        var lockedBalanceForBidder = await this.ah.lockedBalanceInBids(accounts[1]);
+        assert.equal(lockedBalanceForBidder, 10000000);
+
+        var lockedBalanceForOwner = await this.ah.lockedBalanceInBids(accounts[0]);
+        assert.equal(lockedBalanceForOwner, 0);
+
+        //check bid length on auction contract, should be 1
+
+        //check auctionsbidbyuser has one item in the array
+
     });
 
     it("make a bid less than the current high bid and revert", async () => {
-        // await expectRevert.unspecified(
-        //     this.ah.createPhysicalAuction(256, 300, "0x543645645", {from: accounts[0]})
-        // );
+        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", {from: accounts[0]});
+        //todo: get the auctionid from the log event
+        expectEvent(createAuction, 'AuctionCreated');
+
+        //place the bid
+        await this.ah.placeBid(1,  {from: accounts[1], value:10000000});
+        await expectRevert.unspecified(this.ah.placeBid(1,  {from: accounts[2], value:00000011})
+        );
+
+        //no locked balance for new bidder because bid failed
+        var lockedBalanceForBidder = await this.ah.lockedBalanceInBids(accounts[2]);
+        assert.equal(lockedBalanceForBidder, 0);
+
+        //locked balance for first bidder still correct
+        var lockedBalanceForBidder = await this.ah.lockedBalanceInBids(accounts[1]);
+        assert.equal(lockedBalanceForBidder, 10000000);
+
+        //check bid length on auction contract, should be 0
+
+        //check auctionsbidbyuser has 0 item in the array
     });
 
     it("can make bid on auction with bids already", async () => {

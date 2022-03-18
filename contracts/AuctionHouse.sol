@@ -41,6 +41,8 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
         emit AuctionCreated(msg.sender, _auctionIdCounter.current(), _startPrice, _reservePrice, auction);
     }
 
+    //get highest bid for auction
+
     //Get the bids on an auction by its Auction ID
     // function getAuctionBidsOnByAuctionId(uint _auctionId) public view returns (AuctionBid[] memory){
     //     PhysicalAuction addy = PhysicalAuction(auctions[_auctionId]);
