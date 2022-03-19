@@ -10,8 +10,9 @@ contract PhysicalAuction is Auction{
                 uint _startPrice,
                 address _ahAddress,
                 bytes32 _auctionName,
-                uint _auctionId) 
-    Auction(_reservePrice, _startPrice, _ahAddress, _auctionName, _auctionId){
+                uint _auctionId,
+                uint256 _endTime) 
+    Auction(_reservePrice, _startPrice, _ahAddress, _auctionName, _auctionId, _endTime){
 
     }
 }

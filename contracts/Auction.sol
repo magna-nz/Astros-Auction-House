@@ -22,6 +22,7 @@ contract Auction is IAuction, Ownable{
     uint public reservePrice;
     uint public startPrice;
     uint public startTime;
+    uint public endTime;
     uint public auctionId;
     bytes32 public auctionName; //override
     AuctionBid[] public bids;
@@ -30,16 +31,19 @@ contract Auction is IAuction, Ownable{
     address private ahAddress;
     address private _highestBidder;
 
+
     constructor(uint _reservePrice,
                 uint _startPrice,
                 address _ahAddress,
                 bytes32 _auctionName,
-                uint _auctionId) {
+                uint _auctionId,
+                uint256 _endTime) {
 
         ahAddress = _ahAddress; //owner of this is auction house address which will call methods on this
         reservePrice = _reservePrice;
         startPrice = _startPrice;
         startTime = block.timestamp;
+        endTime = _endTime;
         auctionName = _auctionName;
         auctionOwner = tx.origin;
         auctionId = _auctionId;

@@ -13,7 +13,7 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
 
     Counters.Counter public numberOfAuctions;
     Counters.Counter private _auctionIdCounter;
-    event AuctionCreated(address indexed _auctionOwner, uint indexed _auctionId, uint _startPrice, uint _reservePrice, address indexed _auctionContract);
+    event AuctionCreated(address indexed _auctionOwner, uint indexed _auctionId, uint _startPrice, uint _reservePrice, address indexed _auctionContract, uint _endTime);
     event AuctionBidSuccessful(address indexed _bidderAddress, uint indexed _auctionId, uint bidValue, bool reserveMet);
     event AuctionEndedWithWinningBid(address indexed _winningBidder, uint indexed _auctionId);
     event AuctionEndedWithNoWinningBid(uint indexed _auctionId);
@@ -29,18 +29,18 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     }
 
 
-    function createPhysicalAuction(uint _reservePrice, uint _startPrice, bytes32 _auctionName) external {
+    function createPhysicalAuction(uint _reservePrice, uint _startPrice, bytes32 _auctionName, uint256 _endTime) external {
         require(_startPrice < _reservePrice, "Invalid start price");
         _auctionIdCounter.increment(); //not incrementing. use Counter.Counter
 
         address auction = address(new PhysicalAuction(_reservePrice, _startPrice, address(this),
-                                                 _auctionName, _auctionIdCounter.current()));
+                                                 _auctionName, _auctionIdCounter.current(), _endTime));
         numberOfAuctions.increment();
         auctions[_auctionIdCounter.current()] = auction;
         auctionsRunByUser[msg.sender].push(_auctionIdCounter.current());
                 //Contract con = Contract(auctions[auctionId]);
         
-        emit AuctionCreated(msg.sender, _auctionIdCounter.current(), _startPrice, _reservePrice, auction);
+        emit AuctionCreated(msg.sender, _auctionIdCounter.current(), _startPrice, _reservePrice, auction, _endTime);
     }
 
     //get highest bid for auction
