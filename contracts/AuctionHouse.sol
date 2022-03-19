@@ -3,12 +3,14 @@ pragma solidity ^0.8.0;
 
 import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/Counters.sol";
+import ".././node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./AuctionBase.sol";
 import "./PhysicalAuction.sol";
 
-
 contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not let us view details. Fix)
     using Counters for Counters.Counter;
+    using SafeMath for uint;
+
     Counters.Counter public numberOfAuctions;
     Counters.Counter private _auctionIdCounter;
     event AuctionCreated(address indexed _auctionOwner, uint indexed _auctionId, uint _startPrice, uint _reservePrice, address indexed _auctionContract);
@@ -76,9 +78,9 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
 
         //get the last bid and compare it if there's already a bid on it
         if (auction.getBidCount() != 0){
-            AuctionBid memory lastAuctionBid = auction.getBidByIndex(auction.getBidCount() - 1); //todo: safemath
+            AuctionBid memory lastAuctionBid = auction.getBidByIndex(auction.getBidCount().sub(1)); //todo: safemath
             //lastAuctionBid = auction.bids[auction.getBidCount() - 1];   
-            require(msg.value >= lastAuctionBid.bid, "bid not high enough");
+            require(msg.value > lastAuctionBid.bid, "bid not high enough");
         }
         
         //add the bid to the auction
