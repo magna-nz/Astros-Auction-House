@@ -83,6 +83,7 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     }
 
     //Place a bid on an auction
+    //todo: validate first bid is greater than start price
     function placeBid(uint _auctionId) external payable {
         Auction auction = Auction(auctions[_auctionId]);
         require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");

@@ -166,11 +166,11 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("place auction acc[0], no bidders, end acc[0], txn successful, auction closed", async () => {
-        var ins = await AuctionHouse.deployed();
-        await ins.createPhysicalAuction(100,50, "0x33333", 10420436704, {from: accounts[0]});
-        expectEvent(createAuction, 'AuctionCreated');
+        //var ins = await AuctionHouse.deployed();
+        var txn = await this.ah.createPhysicalAuction(100,50, "0x33333", 10420436704, {from: accounts[0]});
+        expectEvent(txn, 'AuctionCreated');
 
-        var end = await ins.endAuction(1, {from:accounts[0]});
+        var end = await this.ah.endAuction(1, {from:accounts[0]});
         expectEvent(end, 'AuctionEndedWithNoWinningBid');
 
 
@@ -182,9 +182,53 @@ contract("AuctionHouse", async (accounts) => {
      });
 
     it("place auction acc[0], bid acc[1], bid acc[2], end acc[0], not meet reserve - refund all bidders", async () => {
-        var ins = await AuctionHouse.deployed();
-        await ins.createPhysicalAuction(100,50, "0x33333", 10420436704, {from: accounts[0]});
-        expectEvent(createAuction, 'AuctionCreated');
+        var txn = await this.ah.createPhysicalAuction(12000000,50,"0x33333", 10420436704, {from: accounts[0]});
+        expectEvent(txn , 'AuctionCreated');
+        //place 2 bids
+        var bid1 = await this.ah.placeBid(1, {from:accounts[1], value:10000000});
+        expectEvent(bid1, 'AuctionBidSuccessful');
+
+        var bid2 = await this.ah.placeBid(1, {from:accounts[2], value:11000000});
+        expectEvent(bid2, 'AuctionBidSuccessful');
+
+
+        //get balances/state beforehand
+        var lockedBalanceForAuctionOwner = await this.ah.lockedBalanceInBids(accounts[0]);
+        var availToWithdrawOwner = await this.ah.availableBalanceToWithdraw(accounts[0]);
+        assert.equal(lockedBalanceForAuctionOwner, 0);
+        assert.equal(availToWithdrawOwner, 0);
+
+        var lockedBalanceForFirstBidder = await this.ah.lockedBalanceInBids(accounts[1]);
+        var availToWithdrawFirstBidder = await this.ah.availableBalanceToWithdraw(accounts[1]);
+        assert.equal(lockedBalanceForFirstBidder, 10000000);
+        assert.equal(availToWithdrawFirstBidder, 0);
+
+        var lockedBalanceForSecondBidder = await this.ah.lockedBalanceInBids(accounts[2]);
+        var availToWithdrawSecondBidder = await this.ah.availableBalanceToWithdraw(accounts[2]);
+        assert.equal(lockedBalanceForSecondBidder, 11000000);
+        assert.equal(availToWithdrawSecondBidder, 0);
+
+        //end the auction with reserve not met
+        var end = await this.ah.endAuction(1, {from:accounts[0]});
+        expectEvent(end, 'AuctionEndedWithNoWinningBid');
+
+        //reserve wasnt met so owner shouldnt haver anything to withdraw
+        var newLockedBalanceForAuctionOwner = await this.ah.lockedBalanceInBids(accounts[0]);
+        var newAvailToWithdrawOwner = await this.ah.availableBalanceToWithdraw(accounts[0]);
+        assert.equal(newLockedBalanceForAuctionOwner, 0);
+        assert.equal(newAvailToWithdrawOwner, 0);
+
+        //account 1 should be refunded and funds unlocked and available for withdrawal
+        var newLockedBalanceForFirstBidder = await this.ah.lockedBalanceInBids(accounts[1]);
+        var newAvailToWithdrawFirstBidder = await this.ah.availableBalanceToWithdraw(accounts[1]);
+        assert.equal(newLockedBalanceForFirstBidder, 0);
+        assert.equal(newAvailToWithdrawFirstBidder, 10000000);
+
+        //account 2 should be refunded and funds unlocked and available for withdrawal
+        var newLockedBalanceForSecondBidder = await this.ah.lockedBalanceInBids(accounts[2]);
+        var newAvailToWithdrawSecondBidder = await this.ah.availableBalanceToWithdraw(accounts[2]);
+        assert.equal(newLockedBalanceForSecondBidder, 0);
+        assert.equal(newAvailToWithdrawSecondBidder, 11000000);
     });
 
     it("place auction acc[0], bid acc[1], bid acc[2], end acc[0], meet reserve - refund all bidders except winner, payout auctionOwner", async () => {
