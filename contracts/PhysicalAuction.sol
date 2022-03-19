@@ -2,16 +2,16 @@
 
 pragma solidity ^0.8.1;
 
-import "./AuctionBase.sol";
+import "./Auction.sol";
 
-contract PhysicalAuction is AuctionBase{
+contract PhysicalAuction is Auction{
 
     constructor(uint _reservePrice,
                 uint _startPrice,
                 address _ahAddress,
                 bytes32 _auctionName,
                 uint _auctionId) 
-    AuctionBase(_reservePrice, _startPrice, _ahAddress, _auctionName, _auctionId){
+    Auction(_reservePrice, _startPrice, _ahAddress, _auctionName, _auctionId){
 
     }
 }

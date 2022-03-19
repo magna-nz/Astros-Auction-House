@@ -15,9 +15,10 @@ enum AuctionStatus { Open, Finished }
 
 //todo: move IAuctoin to derived class
 //todo: change name of class to just auction
-contract AuctionBase is IAuction, Ownable{
+contract Auction is IAuction, Ownable{
     //todo: refactor for variable packing
     bool public hasEnded;
+    bool public reserveMet = false;
     uint public reservePrice;
     uint public startPrice;
     uint public startTime;
@@ -27,6 +28,7 @@ contract AuctionBase is IAuction, Ownable{
     address public auctionOwner;
     AuctionStatus public auctionStatus;
     address private ahAddress;
+    address private _highestBidder;
 
     constructor(uint _reservePrice,
                 uint _startPrice,
@@ -69,6 +71,16 @@ contract AuctionBase is IAuction, Ownable{
     }
 
     function placeBidOnAuction(AuctionBid memory auctionBid) public {
+        //highestBidder = 
         bids.push(auctionBid);
     }
+
+    function updateIfReserveMet(uint bidValue, address bidder) public{
+        if (bidValue >= reservePrice){
+            reserveMet = true;
+            _highestBidder = bidder;
+        }
+    }
+
+    
 }

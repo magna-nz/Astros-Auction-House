@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/Counters.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "./AuctionBase.sol";
+import "./Auction.sol";
 import "./PhysicalAuction.sol";
 
 contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not let us view details. Fix)
@@ -14,7 +14,7 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     Counters.Counter public numberOfAuctions;
     Counters.Counter private _auctionIdCounter;
     event AuctionCreated(address indexed _auctionOwner, uint indexed _auctionId, uint _startPrice, uint _reservePrice, address indexed _auctionContract);
-    event AuctionBidSuccessful(address indexed _bidderAddress, uint indexed _auctionId, uint bidValue);
+    event AuctionBidSuccessful(address indexed _bidderAddress, uint indexed _auctionId, uint bidValue, bool reserveMet);
     event AuctionEndedWithWinningBid(address indexed _winningBidder, uint indexed _auctionId);
     event AuctionEndedWithNoWinningBid(uint indexed _auctionId);
     event AuctionBidRefunded(address indexed _bidderRefunded, uint indexed _auctionId);
@@ -72,10 +72,11 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
 
     //Place a bid on an auction
     function placeBid(uint _auctionId) external payable {
-        AuctionBase auction = AuctionBase(auctions[_auctionId]);
+        Auction auction = Auction(auctions[_auctionId]);
         require(auction.auctionStatus() != AuctionStatus.Finished, "You can't bid on an auction that's ended");
         require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
 
+        //if (action.)
         //get the last bid and compare it if there's already a bid on it
         if (auction.getBidCount() != 0){
             AuctionBid memory lastAuctionBid = auction.getBidByIndex(auction.getBidCount().sub(1)); //todo: safemath
@@ -90,11 +91,16 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
             timestamp: block.timestamp //todo: timestamp can be manipulated by miner
         });
 
+
         auction.placeBidOnAuction(newAuctionBid);
+
+        auction.updateIfReserveMet(msg.value, msg.sender);
+
         auctionsBidOnByUser[msg.sender].push(_auctionId);
 
         //keep a track of locked funds for someone bidding
         lockedBalanceInBids[msg.sender] += msg.value;
-        emit AuctionBidSuccessful(msg.sender, _auctionId, msg.value);
+        
+        emit AuctionBidSuccessful(msg.sender, _auctionId, msg.value, auction.reserveMet());
     }
 }

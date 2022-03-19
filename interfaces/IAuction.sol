@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../contracts/AuctionBase.sol";
+import "../contracts/Auction.sol";
 
 interface IAuction {
    function getLastBid() external view returns(AuctionBid memory);
