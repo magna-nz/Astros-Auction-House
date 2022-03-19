@@ -24,6 +24,7 @@ contract Auction is IAuction, Ownable{
     uint public startTime;
     uint public endTime;
     uint public auctionId;
+    bool public haveRefundedBidders = false;
     bytes32 public auctionName; //override
     AuctionBid[] public bids;
     address public auctionOwner;
@@ -86,5 +87,8 @@ contract Auction is IAuction, Ownable{
         }
     }
 
-    
+    function setAuctionStatus(AuctionStatus status) public{
+        require(this.auctionStatus() != AuctionStatus.Finished, "Auction is already finished");
+        auctionStatus = status;
+    }
 }

@@ -70,13 +70,35 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     //     return userAuctionContracts;
     // }
 
+    
+    /*
+    close auction
+    check if they own the auction
+    close it if its open.
+    check if refunded bidders
+    process that
+
+
+
+    */
+
     //Place a bid on an auction
     function placeBid(uint _auctionId) external payable {
         Auction auction = Auction(auctions[_auctionId]);
-        require(auction.auctionStatus() != AuctionStatus.Finished, "You can't bid on an auction that's ended");
         require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
 
-        //if (action.)
+        if (auction.endTime() <= block.timestamp){
+            //set the auctionStatusToEnded.
+            //we only set the auctionStatus to Finished so the bidder doens't pay the fee
+            //to do all of the maintenance with closing of the auction.
+            //In the future, we will want to use an oracle to do this automatically
+            //But that costs ether.
+            //In this scenario, when the auction has ended, the auctionOwner will be able
+            //close the auction and he can pay the gas himself to close up.
+            auction.setAuctionStatus(AuctionStatus.Finished);
+        }
+        require(auction.auctionStatus() != AuctionStatus.Finished, "You can't bid on an auction that's ended");
+        
         //get the last bid and compare it if there's already a bid on it
         if (auction.getBidCount() != 0){
             AuctionBid memory lastAuctionBid = auction.getBidByIndex(auction.getBidCount().sub(1)); //todo: safemath
