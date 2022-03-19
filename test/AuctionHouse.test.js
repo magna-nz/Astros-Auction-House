@@ -221,7 +221,42 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("place auction acc[0], bid acc[1], bid acc[2], end acc[0], meet reserve - refund all bidders except winner, payout auctionOwner", async () => {
+        var firstBidderAmount = 10000000;
+        var secondBidderAmount = 13000000;
+        var reservePrice = 12000000;
+
+        expectEvent(await this.ah.createPhysicalAuction(reservePrice, 50, "0x33333", 10420436704, {from: accounts[0]})
+                , 'AuctionCreated');
         
+        //place 2 bids
+        expectEvent(await this.ah.placeBid(1, {from:accounts[1], value: firstBidderAmount}), 'AuctionBidSuccessful');
+        expectEvent(await this.ah.placeBid(1, {from:accounts[2], value: secondBidderAmount}), 'AuctionBidSuccessful');
+
+
+        //get balances/state beforehand
+        assert.equal(await this.ah.lockedBalanceInBids(accounts[0]), 0);
+        assert.equal(await this.ah.availableBalanceToWithdraw(accounts[0]), 0);
+
+        assert.equal(await this.ah.lockedBalanceInBids(accounts[1]), firstBidderAmount);
+        assert.equal(await this.ah.availableBalanceToWithdraw(accounts[1]), 0);
+
+        assert.equal(await this.ah.lockedBalanceInBids(accounts[2]), secondBidderAmount);
+        assert.equal(await this.ah.availableBalanceToWithdraw(accounts[2]), 0);
+
+        //end the auction with reserve not met
+        expectEvent(await this.ah.endAuction(1, {from:accounts[0]}), 'AuctionEndedWithWinningBid');
+
+        //reserve was met so owner should have the latest bid available to withdraw
+        assert.equal(await this.ah.lockedBalanceInBids(accounts[0]), 0);
+        assert.equal(await this.ah.availableBalanceToWithdraw(accounts[0]), secondBidderAmount);
+
+        //account 1 should be refunded and funds unlocked and available for withdrawal
+        assert.equal(await this.ah.lockedBalanceInBids(accounts[1]), 0);
+        assert.equal(await this.ah.availableBalanceToWithdraw(accounts[1]), firstBidderAmount);
+
+        //account 2 paid for the bid and have won, so their balance was transferred to winner
+        assert.equal(await this.ah.lockedBalanceInBids(accounts[2]), 0);
+        assert.equal(await this.ah.availableBalanceToWithdraw(accounts[2]), 0);
     });
 
     it("place auction acc[0], bid acc[1], end acc[0], try end again acc[0] - revert auction finished,", async () => {

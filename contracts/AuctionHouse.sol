@@ -24,8 +24,8 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     mapping(address => uint[]) public auctionsRunByUser; //points to index in auctions the current user has
     mapping(address => uint[]) public auctionsBidOnByUser; //points to index of bids the user has on auctions
     mapping(address => uint) public lockedBalanceInBids; //balance locked in bids for auctions as of current
-
     mapping(address => uint) public availableBalanceToWithdraw; //available balance for them to withdraw
+    mapping(address => uint[]) public auctionsWonByUser;
 
 
     constructor() {
@@ -145,7 +145,7 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
             //use the last bid and move funds around
             lockedBalanceInBids[lastBid.bidder] -= (lastBid.bid);
             availableBalanceToWithdraw[auction.auctionOwner()] += lastBid.bid;
-
+            auctionsWonByUser[lastBid.bidder].push(auction.auctionId());
             emit AuctionEndedWithWinningBid(lastBid.bidder, auction.auctionId());
         }
         else{
