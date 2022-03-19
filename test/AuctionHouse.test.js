@@ -168,6 +168,7 @@ contract("AuctionHouse", async (accounts) => {
     it("place auction acc[0], no bidders, end acc[0], txn successful, auction closed", async () => {
         var ins = await AuctionHouse.deployed();
         await ins.createPhysicalAuction(100,50, "0x33333", 10420436704, {from: accounts[0]});
+        expectEvent(createAuction, 'AuctionCreated');
 
         var end = await ins.endAuction(1, {from:accounts[0]});
         expectEvent(end, 'AuctionEndedWithNoWinningBid');
@@ -181,7 +182,9 @@ contract("AuctionHouse", async (accounts) => {
      });
 
     it("place auction acc[0], bid acc[1], bid acc[2], end acc[0], not meet reserve - refund all bidders", async () => {
-        
+        var ins = await AuctionHouse.deployed();
+        await ins.createPhysicalAuction(100,50, "0x33333", 10420436704, {from: accounts[0]});
+        expectEvent(createAuction, 'AuctionCreated');
     });
 
     it("place auction acc[0], bid acc[1], bid acc[2], end acc[0], meet reserve - refund all bidders except winner, payout auctionOwner", async () => {

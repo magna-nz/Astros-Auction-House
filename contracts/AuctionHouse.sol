@@ -132,37 +132,40 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
             return;
         }
 
-        //if reserve isnt met, refund them all
-        uint bidChainLength;
+        //if reserve isnt met, refund them all\
         if (isReserveMet){
 
             AuctionBid memory lastBid = auctionBids[auctionBids.length - 1];
 
-            //if reserve is met, don't refund the winning bidder.
-            bidChainLength = auctionBids.length - 2;
+            //delete p the last bid off since we will process the final bid separately
+            delete auctionBids[auctionBids.length-1];
 
             //Pay the Winner
             //use the last bid and move funds around
-            lockedBalanceInBids[lastBid.bidder].sub(lastBid.bid);
-            availableBalanceToWithdraw[auction.auctionOwner()].add(lastBid.bid);
+            lockedBalanceInBids[lastBid.bidder] -= (lastBid.bid);
+            availableBalanceToWithdraw[auction.auctionOwner()] += lastBid.bid;
 
             emit AuctionEndedWithWinningBid(lastBid.bidder, auction.auctionId());
         }
         else{
-            bidChainLength = auctionBids.length-1;
             emit AuctionEndedWithNoWinningBid(auction.auctionId());
         }
 
         //refund all the bidders that needed to be refunded
         //if reserve was met it won't refund the last bid as that's already been transferred
         //to the auctionOwner above
-        for (uint i = 0; i < bidChainLength; i++){
+        for (uint i = 0; i < auctionBids.length; i++){
             AuctionBid memory currentBid = auctionBids[i];
+
+            //if you delete an item in memory, it zeros it out, the length is still the same
+            //if its a zero address dont bother
+            if (currentBid.bidder == address(0)){
+                continue;
+            }
             //send value from locked balance for address -> available balance. This can be withdrawn by a user.
             //we need proper exception handling here for if there isn't enough in locked balance. shouldnt ever be the case
-            lockedBalanceInBids[currentBid.bidder].sub(currentBid.bid);
-            availableBalanceToWithdraw[currentBid.bidder].add(currentBid.bid);
-
+            lockedBalanceInBids[currentBid.bidder] -= currentBid.bid;
+            availableBalanceToWithdraw[currentBid.bidder] += currentBid.bid;
             emit AuctionBidRefunded(currentBid.bidder, auction.auctionId());
             emit AvailableBalanceUpdated(currentBid.bidder, auction.auctionId(), currentBid.bid, availableBalanceToWithdraw[currentBid.bidder]);
         }
