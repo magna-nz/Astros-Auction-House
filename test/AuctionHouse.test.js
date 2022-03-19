@@ -11,15 +11,13 @@ const AuctionHouse = artifacts.require("AuctionHouse");
 contract("AuctionHouse", async (accounts) => {
     beforeEach(async () => {
         this.ah = await AuctionHouse.new();
+        
     });
 
-    //to ensure no matter when these tests run, the auction endDate is created in the future
-    var endTime = new Date();
-    endTime.setDate(endTime.getDate()+5);
 
     it("revert when start price is less than reserve price", async () => {
         await expectRevert.unspecified(
-            this.ah.createPhysicalAuction(256, 300, "0x543645645", endTime.getTime() ,{from: accounts[0]})
+            this.ah.createPhysicalAuction(256, 300, "0x543645645", 10420436704 ,{from: accounts[0]})
         );
 
         //assert no auctions were created
@@ -28,7 +26,7 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("can successfully create auction", async () => {
-        let response = await this.ah.createPhysicalAuction(256, 100, "0x543645645", endTime.getTime(), {from: accounts[0]})
+        let response = await this.ah.createPhysicalAuction(256, 100, "0x543645645", 10420436704, {from: accounts[0]})
 
         //check receipt to make sure every was called
         expectEvent(response, 'AuctionCreated');
@@ -39,7 +37,7 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("auction owner cant bid on his own auction", async () => {
-        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", endTime.getTime(), {from: accounts[0]});
+        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704, {from: accounts[0]});
 
         //try place bid
         await expectRevert.unspecified(
@@ -55,7 +53,7 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("can make bid on an auction with no bids", async () => {
-        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", endTime.getTime(), {from: accounts[0]});
+        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704, {from: accounts[0]});
         //todo: get the auctionid from the log event
         expectEvent(createAuction, 'AuctionCreated');
 
@@ -77,7 +75,7 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("make a bid less than the current high bid and revert", async () => {
-        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", endTime.getTime(), {from: accounts[0]});
+        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704, {from: accounts[0]});
         //todo: get the auctionid from the log event
         expectEvent(createAuction, 'AuctionCreated');
 
@@ -100,7 +98,7 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("can make bid on auction with bids already", async () => {
-        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", endTime.getTime() ,{from: accounts[0]});
+        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704 ,{from: accounts[0]});
         //todo: get the auctionid from the log event
         expectEvent(createAuction, 'AuctionCreated');
 
@@ -124,7 +122,7 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("when an address makes a bid on auction theyve already bidded on - locked balance should be the sum", async () => {
-        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", endTime.getTime() ,{from: accounts[0]});
+        var createAuction = await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704 ,{from: accounts[0]});
         //todo: get the auctionid from the log event
         expectEvent(createAuction, 'AuctionCreated');
 

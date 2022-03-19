@@ -18,11 +18,14 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     event AuctionEndedWithWinningBid(address indexed _winningBidder, uint indexed _auctionId);
     event AuctionEndedWithNoWinningBid(uint indexed _auctionId);
     event AuctionBidRefunded(address indexed _bidderRefunded, uint indexed _auctionId);
+    event AvailableBalanceUpdated(address indexed _balanceHolder, uint indexed _auctionId, uint amountChanged, uint newBalance);
 
     mapping(uint => address) auctions; //auction ID => Auction child contract
     mapping(address => uint[]) public auctionsRunByUser; //points to index in auctions the current user has
     mapping(address => uint[]) public auctionsBidOnByUser; //points to index of bids the user has on auctions
     mapping(address => uint) public lockedBalanceInBids; //balance locked in bids for auctions as of current
+
+    mapping(address => uint) public availableBalanceToWithdraw; //available balance for them to withdraw
 
 
     constructor() {
@@ -70,33 +73,20 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     //     return userAuctionContracts;
     // }
 
-    
-    /*
-    close auction
-    check if they own the auction
-    close it if its open.
-    check if refunded bidders
-    process that
 
-
-
-    */
+    function endAuction(uint _auctionId) external {
+        Auction auction = Auction(auctions[_auctionId]);
+        require(address(auction) != address(0), "auction ID does not exist");
+        require(msg.sender == auction.auctionOwner(), "only the auction owner can close an auction");
+        require(auction.auctionStatus() != AuctionStatus.Finished, "auction is already finished");
+        completeAuction(auction);
+    }
 
     //Place a bid on an auction
     function placeBid(uint _auctionId) external payable {
         Auction auction = Auction(auctions[_auctionId]);
         require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
-
-        if (auction.endTime() <= block.timestamp){
-            //set the auctionStatusToEnded.
-            //we only set the auctionStatus to Finished so the bidder doens't pay the fee
-            //to do all of the maintenance with closing of the auction.
-            //In the future, we will want to use an oracle to do this automatically
-            //But that costs ether.
-            //In this scenario, when the auction has ended, the auctionOwner will be able
-            //close the auction and he can pay the gas himself to close up.
-            auction.setAuctionStatus(AuctionStatus.Finished);
-        }
+        require(block.timestamp <= auction.endTime(), "Auction has expired.");
         require(auction.auctionStatus() != AuctionStatus.Finished, "You can't bid on an auction that's ended");
         
         //get the last bid and compare it if there's already a bid on it
@@ -109,7 +99,7 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
         //add the bid to the auction
         AuctionBid memory newAuctionBid = AuctionBid({
             bid: msg.value,
-            bidder: payable(msg.sender),
+            bidder: msg.sender,
             timestamp: block.timestamp //todo: timestamp can be manipulated by miner
         });
 
@@ -124,5 +114,51 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
         lockedBalanceInBids[msg.sender] += msg.value;
         
         emit AuctionBidSuccessful(msg.sender, _auctionId, msg.value, auction.reserveMet());
+    }
+
+    function completeAuction(Auction auction) private {
+       auction.close();
+       require(auction.auctionStatus() == AuctionStatus.Finished, "Auction isn't finished yet");
+       require(auction.auctionWinner() != address(0), "Auction should have a winner"); //todo: assert?
+       processPayouts(auction);
+    }
+
+    function processPayouts(Auction auction) private {
+        bool isReserveMet = auction.reserveMet();
+        AuctionBid[] memory auctionBids = auction.getBids();
+        //if reserve isnt met, refund them all
+        uint bidChainLength;
+        if (isReserveMet){
+
+            AuctionBid memory lastBid = auctionBids[auctionBids.length - 1];
+
+            //if reserve is met, don't refund the winning bidder.
+            bidChainLength = auctionBids.length - 2;
+
+            //Pay the Winner
+            //use the last bid and move funds around
+            lockedBalanceInBids[lastBid.bidder].sub(lastBid.bid);
+            availableBalanceToWithdraw[auction.auctionOwner()].add(lastBid.bid);
+
+            emit AuctionEndedWithWinningBid(lastBid.bidder, auction.auctionId());
+        }
+        else{
+            bidChainLength = auctionBids.length-1;
+            emit AuctionEndedWithNoWinningBid(auction.auctionId());
+        }
+
+        //refund all the bidders that needed to be refunded
+        //if reserve was met it won't refund the last bid as that's already been transferred
+        //to the auctionOwner above
+        for (uint i = 0; i < bidChainLength; i++){
+            AuctionBid memory currentBid = auctionBids[i];
+            //send value from locked balance for address -> available balance. This can be withdrawn by a user.
+            //we need proper exception handling here for if there isn't enough in locked balance. shouldnt ever be the case
+            lockedBalanceInBids[currentBid.bidder].sub(currentBid.bid);
+            availableBalanceToWithdraw[currentBid.bidder].add(currentBid.bid);
+
+            emit AuctionBidRefunded(currentBid.bidder, auction.auctionId());
+            emit AvailableBalanceUpdated(currentBid.bidder, auction.auctionId(), currentBid.bid, availableBalanceToWithdraw[currentBid.bidder]);
+        }
     }
 }

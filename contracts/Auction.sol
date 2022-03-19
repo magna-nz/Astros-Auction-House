@@ -6,7 +6,7 @@ import "../interfaces/IAuction.sol";
 import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
 
 struct AuctionBid{
-    address payable bidder;
+    address bidder;
     uint bid;
     uint timestamp;
 }
@@ -17,20 +17,20 @@ enum AuctionStatus { Open, Finished }
 //todo: change name of class to just auction
 contract Auction is IAuction, Ownable{
     //todo: refactor for variable packing
-    bool public hasEnded;
+    bool public hasEnded = auctionStatus == AuctionStatus.Finished;
     bool public reserveMet = false;
     uint public reservePrice;
     uint public startPrice;
     uint public startTime;
     uint public endTime;
     uint public auctionId;
-    bool public haveRefundedBidders = false;
     bytes32 public auctionName; //override
     AuctionBid[] public bids;
     address public auctionOwner;
     AuctionStatus public auctionStatus;
     address private ahAddress;
     address private _highestBidder;
+    address public auctionWinner;
 
 
     constructor(uint _reservePrice,
@@ -53,6 +53,17 @@ contract Auction is IAuction, Ownable{
 
    function getLastBid() external view returns(AuctionBid memory){
        return bids[bids.length-1];
+   }
+
+   function close() public {
+       AuctionBid memory lastBid = this.getLastBid();
+       auctionWinner = lastBid.bidder;
+       auctionStatus = AuctionStatus.Finished;
+   }
+
+   //todo why can't we get it from public var?
+   function getBids() public view returns (AuctionBid[] memory){
+       return bids;
    }
 
    //can remove
