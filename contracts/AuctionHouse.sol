@@ -119,13 +119,13 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     function completeAuction(Auction auction) private {
        auction.close();
        require(auction.auctionStatus() == AuctionStatus.Finished, "Auction isn't finished yet");
-       require(auction.auctionWinner() != address(0), "Auction should have a winner"); //todo: assert?
        processPayouts(auction);
     }
 
     function processPayouts(Auction auction) private {
         bool isReserveMet = auction.reserveMet();
         AuctionBid[] memory auctionBids = auction.getBids();
+        
         //if reserve isnt met, refund them all
         uint bidChainLength;
         if (isReserveMet){

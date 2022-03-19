@@ -14,7 +14,6 @@ contract("AuctionHouse", async (accounts) => {
         
     });
 
-
     it("revert when start price is less than reserve price", async () => {
         await expectRevert.unspecified(
             this.ah.createPhysicalAuction(256, 300, "0x543645645", 10420436704 ,{from: accounts[0]})
@@ -148,4 +147,41 @@ contract("AuctionHouse", async (accounts) => {
 
         //check auctionsbidbyuser has 2 item in the array
     });
+
+    it("end auction with auction id that doesn't exist - revert", async () => {
+        //auctionId 1 is created
+        await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704 ,{from: accounts[0]});
+        await expectRevert.unspecified(
+            this.ah.endAuction(4,  {from: accounts[0]})
+        );
+    });
+
+    it("place auction acc[0], bid acc[1], end acc[1] - revert", async () => {
+       //auctionId 1 is created
+       await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704 ,{from: accounts[0]});
+
+       await expectRevert.unspecified(
+           this.ah.endAuction(1,  {from: accounts[1]})
+       );
+
+    });
+
+    it("place auction acc[0], no bidders, end acc[0]", async () => {
+        
+ 
+     });
+
+    it("place auction acc[0], bid acc[1], bid acc[2], end acc[0], not meet reserve - refund all bidders", async () => {
+        
+    });
+
+    it("place auction acc[0], bid acc[1], bid acc[2], end acc[0], meet reserve - refund all bidders except winner, payout auctionOwner", async () => {
+        
+    });
+
+    it("place auction acc[0], bid acc[1], end acc[0], try end again acc[0] - revert auction finished,", async () => {
+        
+    });
+
+
 });
