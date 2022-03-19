@@ -163,12 +163,21 @@ contract("AuctionHouse", async (accounts) => {
        await expectRevert.unspecified(
            this.ah.endAuction(1,  {from: accounts[1]})
        );
-
     });
 
-    it("place auction acc[0], no bidders, end acc[0]", async () => {
-        
- 
+    it("place auction acc[0], no bidders, end acc[0], txn successful, auction closed", async () => {
+        var ins = await AuctionHouse.deployed();
+        await ins.createPhysicalAuction(100,50, "0x33333", 10420436704, {from: accounts[0]});
+
+        var end = await ins.endAuction(1, {from:accounts[0]});
+        expectEvent(end, 'AuctionEndedWithNoWinningBid');
+
+
+        var lockedBalanceForBidder = await this.ah.lockedBalanceInBids(accounts[0]);
+        assert.equal(lockedBalanceForBidder, 0);
+
+        //somehow get contract instance and check here if auction has ended
+
      });
 
     it("place auction acc[0], bid acc[1], bid acc[2], end acc[0], not meet reserve - refund all bidders", async () => {

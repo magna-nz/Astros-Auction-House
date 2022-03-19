@@ -126,6 +126,12 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
         bool isReserveMet = auction.reserveMet();
         AuctionBid[] memory auctionBids = auction.getBids();
         
+        //if theres no bids, theres nothing to payout
+        if (auctionBids.length == 0){
+            emit AuctionEndedWithNoWinningBid(auction.auctionId());
+            return;
+        }
+
         //if reserve isnt met, refund them all
         uint bidChainLength;
         if (isReserveMet){

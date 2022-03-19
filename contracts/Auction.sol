@@ -56,8 +56,11 @@ contract Auction is IAuction, Ownable{
    }
 
    function close() public {
-       AuctionBid memory lastBid = this.getLastBid();
-       auctionWinner = lastBid.bidder;
+       if (this.reserveMet()){
+           assert(bids.length >= 0);
+           AuctionBid memory lastBid = this.getLastBid();
+           auctionWinner = lastBid.bidder;
+       }
        auctionStatus = AuctionStatus.Finished;
    }
 
