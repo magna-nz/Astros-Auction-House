@@ -4,10 +4,11 @@ pragma solidity ^0.8.0;
 import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/Counters.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol";
+import ".././node_modules/@openzeppelin/contracts/security/PullPayment.sol";
 import "./Auction.sol";
 import "./PhysicalAuction.sol";
 
-contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not let us view details. Fix)
+contract AuctionHouse is PullPayment{// is Ownable{ (TODO: ownable here causes ganache to not let us view details. Fix)
     using Counters for Counters.Counter;
     using SafeMath for uint;
 
@@ -18,15 +19,13 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     event AuctionEndedWithWinningBid(address indexed _winningBidder, uint indexed _auctionId);
     event AuctionEndedWithNoWinningBid(uint indexed _auctionId);
     event AuctionBidRefunded(address indexed _bidderRefunded, uint indexed _auctionId);
-    event AvailableBalanceUpdated(address indexed _balanceHolder, uint indexed _auctionId, uint amountChanged, uint newBalance);
+    event AvailableBalanceUpdated(address indexed _balanceHolder, uint amountChanged, uint newBalance);
 
     mapping(uint => address) auctions; //auction ID => Auction child contract
     mapping(address => uint[]) public auctionsRunByUser; //points to index in auctions the current user has
     mapping(address => uint[]) public auctionsBidOnByUser; //points to index of bids the user has on auctions
     mapping(address => uint) public lockedBalanceInBids; //balance locked in bids for auctions as of current
-    mapping(address => uint) public availableBalanceToWithdraw; //available balance for them to withdraw
     mapping(address => uint[]) public auctionsWonByUser;
-
 
     constructor() {
     }
@@ -38,14 +37,13 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     */
     function createPhysicalAuction(uint _reservePrice, uint _startPrice, bytes32 _auctionName, uint256 _endTime) external {
         require(_startPrice < _reservePrice, "Invalid start price");
-        _auctionIdCounter.increment(); //not incrementing. use Counter.Counter
+        _auctionIdCounter.increment();
 
         address auction = address(new PhysicalAuction(_reservePrice, _startPrice, address(this),
                                                  _auctionName, _auctionIdCounter.current(), _endTime));
         numberOfAuctions.increment();
         auctions[_auctionIdCounter.current()] = auction;
         auctionsRunByUser[msg.sender].push(_auctionIdCounter.current());
-                //Contract con = Contract(auctions[auctionId]);
         
         emit AuctionCreated(msg.sender, _auctionIdCounter.current(), _startPrice, _reservePrice, auction, _endTime);
     }
@@ -93,6 +91,7 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     Place a bid on an auction
     Gas estimate: 149080
     */
+
     function placeBid(uint _auctionId) external payable {
         Auction auction = Auction(auctions[_auctionId]);
         require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
@@ -133,6 +132,17 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
        processPayouts(auction);
     }
 
+    // function withdrawAvailableBalance(address payable _to) external {
+    //     uint balance = availableBalanceToWithdraw[msg.sender];
+    //     assert(balance > 0);
+    //     assert(availableBalanceToWithdraw[msg.sender] - balance >= 0);
+    //     assert(address(this).balance - balance >= 0);
+    //     availableBalanceToWithdraw[msg.sender] -= balance;
+    //     (bool success, ) = _to.call{value: balance}("");
+    //     require(success, "Transfer failed");
+    //     emit AvailableBalanceUpdated(msg.sender, balance, availableBalanceToWithdraw[msg.sender]);
+    // }
+
     function processPayouts(Auction auction) private {
         bool isReserveMet = auction.reserveMet();
         AuctionBid[] memory auctionBids = auction.getBids();
@@ -154,7 +164,10 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
             //Pay the Winner
             //use the last bid and move funds around
             lockedBalanceInBids[lastBid.bidder] -= (lastBid.bid);
-            availableBalanceToWithdraw[auction.auctionOwner()] += lastBid.bid;
+
+            //move to available to withdraw
+            super._asyncTransfer(auction.auctionOwner(), lastBid.bid);
+            //availableBalanceToWithdraw[auction.auctionOwner()] += lastBid.bid;
             auctionsWonByUser[lastBid.bidder].push(auction.auctionId());
             emit AuctionEndedWithWinningBid(lastBid.bidder, auction.auctionId());
         }
@@ -173,12 +186,15 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
             if (currentBid.bidder == address(0)){
                 continue;
             }
+
             //send value from locked balance for address -> available balance. This can be withdrawn by a user.
             //we need proper exception handling here for if there isn't enough in locked balance. shouldnt ever be the case
             lockedBalanceInBids[currentBid.bidder] -= currentBid.bid;
-            availableBalanceToWithdraw[currentBid.bidder] += currentBid.bid;
+
+            super._asyncTransfer(currentBid.bidder, currentBid.bid);
+
             emit AuctionBidRefunded(currentBid.bidder, auction.auctionId());
-            emit AvailableBalanceUpdated(currentBid.bidder, auction.auctionId(), currentBid.bid, availableBalanceToWithdraw[currentBid.bidder]);
+            emit AvailableBalanceUpdated(currentBid.bidder, currentBid.bid, super.payments(currentBid.bidder));
         }
     }
 }
