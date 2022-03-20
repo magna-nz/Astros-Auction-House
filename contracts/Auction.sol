@@ -17,8 +17,8 @@ enum AuctionStatus { Open, Finished }
 //todo: change name of class to just auction
 contract Auction is IAuction, Ownable{
     //todo: refactor for variable packing
-    bool public hasEnded = auctionStatus == AuctionStatus.Finished;
-    bool public reserveMet = false;
+    bool public hasEnded;
+    bool public reserveMet;
     uint public reservePrice;
     uint public startPrice;
     uint public startTime;
@@ -61,6 +61,7 @@ contract Auction is IAuction, Ownable{
            AuctionBid memory lastBid = this.getLastBid();
            auctionWinner = lastBid.bidder;
        }
+       hasEnded = true;
        auctionStatus = AuctionStatus.Finished;
    }
 

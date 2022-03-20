@@ -32,6 +32,10 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     }
 
 
+    /*
+    Creates an physical auction
+    Gas estimate: 1491995
+    */
     function createPhysicalAuction(uint _reservePrice, uint _startPrice, bytes32 _auctionName, uint256 _endTime) external {
         require(_startPrice < _reservePrice, "Invalid start price");
         _auctionIdCounter.increment(); //not incrementing. use Counter.Counter
@@ -73,7 +77,10 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
     //     return userAuctionContracts;
     // }
 
-
+    /*
+    End an auction
+    Gas estimate: 55180
+    */
     function endAuction(uint _auctionId) external {
         Auction auction = Auction(auctions[_auctionId]);
         require(address(auction) != address(0), "auction ID does not exist");
@@ -82,14 +89,17 @@ contract AuctionHouse{// is Ownable{ (TODO: ownable here causes ganache to not l
         completeAuction(auction);
     }
 
-    //Place a bid on an auction
-    //todo: validate first bid is greater than start price
+    /*
+    Place a bid on an auction
+    Gas estimate: 149080
+    */
     function placeBid(uint _auctionId) external payable {
         Auction auction = Auction(auctions[_auctionId]);
         require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
         require(block.timestamp <= auction.endTime(), "Auction has expired.");
         require(auction.auctionStatus() != AuctionStatus.Finished, "You can't bid on an auction that's ended");
-        
+        require(msg.value > auction.startPrice(), "Auction must be greater than start price");
+
         //get the last bid and compare it if there's already a bid on it
         if (auction.getBidCount() != 0){
             AuctionBid memory lastAuctionBid = auction.getBidByIndex(auction.getBidCount().sub(1)); //todo: safemath
