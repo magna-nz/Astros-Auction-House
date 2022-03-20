@@ -12,7 +12,7 @@ var end = await ins.endAuction(1, {from:accounts[0]});
 //check available balance
 var withdrawBalance0 = await ins.payments(accounts[0]);
 var withdrawalBalance1 = await ins.payments(accounts[1]);
-var withdraww0 = await ins.withdrawPayments(accounts[0], {from: accounts[0]});
+var withdrawal = await ins.withdrawPayments(accounts[0], {from: accounts[0]});
 var withdraww1 = await ins.withdrawPayments(accounts[1], {from: accounts[1]});
 
 
