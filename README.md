@@ -23,5 +23,7 @@ Prerequisites:
 
 1. Clone the code
 2. Restore packages
-    `npm install` from the current directory
-3. `truffle test` to run all code
+   `npm install` from the current directory
+3. `truffle test` to run all tests
+4. `truffle console` to connect to Ganache RPC. Make sure Ganache is open.
+5. Interact with deployed contracts
