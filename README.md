@@ -6,6 +6,7 @@ Other users can bid on these auctions.
 
 The auction can end and if reserve is met the winning bidder pays out to the auctionowner.
 
+**(ERC721 implementation for NFTs in upcoming release)**
 Please check the github for any issues and current progress of development
 
 
