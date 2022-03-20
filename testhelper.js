@@ -10,8 +10,24 @@ var bid2 = await ins.placeBid(1, {from:accounts[2], value:11000000});
 var end = await ins.endAuction(1, {from:accounts[0]});
 
 //after auction ends
-var lockedBalanceForBidder = await this.ah.lockedBalanceInBids(accounts[0]);
+var lockedBalanceForBidder = await tis.ah.lockedBalanceInBids(accounts[0]);
 var avail1 = await ins.availableBalanceToWithdraw(accounts[2]);
 
 //gas estimation:
 var txn = await ins.createPhysicalAuction.estimateGas(100,50,"0x000", 1010420436704);
+
+
+//Tools:
+// Visualization: 
+// - Surya - Call graphs https://github.com/ConsenSys/surya
+// - Solgraph - solgraph contracts/AuctionHouse.sol > AuctionHouse.dot 
+//            - dot -Tpng AuctionHouse.dot -o AuctionHouse.png
+
+//Static code analysis
+//Slither - https://github.com/crytic/slither#bugs-and-optimizations-detection
+//Oyente - https://github.com/enzymefinance/oyente
+//Securify - https://github.com/eth-sri/securify2
+
+
+
+

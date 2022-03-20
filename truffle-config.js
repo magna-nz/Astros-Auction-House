@@ -25,7 +25,8 @@
 
 module.exports = {
   plugins: [
-    "truffle-plugin-debugger"
+    "truffle-plugin-debugger",
+    "solidity-coverage"
   ],
   
   /**

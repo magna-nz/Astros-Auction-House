@@ -8,6 +8,7 @@
     "web3": "^1.7.1"
   },
   "devDependencies": {
-    "@openzeppelin/test-helpers": "^0.5.15"
+    "@openzeppelin/test-helpers": "^0.5.15",
+    "solidity-coverage": "^0.7.20"
   }
 }

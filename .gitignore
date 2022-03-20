@@ -62,3 +62,6 @@ artifacts
 .certora*
 .last_confs
 certora_*
+
+*.png
+*.dot
