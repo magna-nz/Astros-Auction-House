@@ -14,10 +14,10 @@ Please check the github for any issues and current progress of development
 ## Prerequisites
 
 Prerequisites:
-* Truffle
-* NPM
-* Ganache
-* solc 8.1^
+* Truffle v5.0
+* npm
+* Ganache ^7.0
+* solc 0.8.11
 
 ## To install
 
