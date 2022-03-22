@@ -5,10 +5,12 @@ import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/Counters.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol";
 import ".././node_modules/@openzeppelin/contracts/security/PullPayment.sol";
+import ".././node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import ".././node_modules/@openzeppelin/contracts/security/Pausable.sol";
 import "./Auction.sol";
 import "./PhysicalAuction.sol";
 
-contract AuctionHouse is PullPayment{// is Ownable{ (TODO: ownable here causes ganache to not let us view details. Fix)
+contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
     using Counters for Counters.Counter;
     using SafeMath for uint;
 
@@ -31,11 +33,20 @@ contract AuctionHouse is PullPayment{// is Ownable{ (TODO: ownable here causes g
     }
 
 
+    function pauseContract() onlyOwner public {
+        super._pause();
+    }
+
+    function unpauseContract() onlyOwner public {
+        super._unpause();
+    }
+
+
     /*
     Creates an physical auction
     Gas estimate: 1491995
     */
-    function createPhysicalAuction(uint _reservePrice, uint _startPrice, bytes32 _auctionName, uint256 _endTime) external {
+    function createPhysicalAuction(uint _reservePrice, uint _startPrice, bytes32 _auctionName, uint256 _endTime) whenNotPaused external {
         require(_startPrice < _reservePrice, "Invalid start price");
         _auctionIdCounter.increment();
 
@@ -47,33 +58,6 @@ contract AuctionHouse is PullPayment{// is Ownable{ (TODO: ownable here causes g
         
         emit AuctionCreated(msg.sender, _auctionIdCounter.current(), _startPrice, _reservePrice, auction, _endTime);
     }
-
-    //get highest bid for auction
-
-    //Get the bids on an auction by its Auction ID
-    // function getAuctionBidsOnByAuctionId(uint _auctionId) public view returns (AuctionBid[] memory){
-    //     PhysicalAuction addy = PhysicalAuction(auctions[_auctionId]);
-    //     return addy.bids();
-    // }
-
-    //Get auctions owned by a user
-    //todo: gas consumption
-    //This will only be called externally, and therefore shouldn't cost any gas
-    //https://ethereum.stackexchange.com/questions/52885/view-pure-gas-usage-cost-gas-if-called-internally-by-another-function/52887#52887
-    //only internal calls inside would
-    // function getAuctionsRunByUser(address _address) external view returns (address[] memory){
-    //     require(msg.sender == _address, "you can only see auctions run by yourself");
-        
-    //     uint[] memory userAuctionIds = auctionsRunByUser[_address];
-    //     address[] memory userAuctionContracts;
-
-    //     for (uint i = 0; i < userAuctionIds.length; i++){
-    //         uint auctionId = userAuctionIds[i];
-    //         userAuctionContracts[i] = auctions[auctionId];
-    //     }
-
-    //     return userAuctionContracts;
-    // }
 
     /*
     End an auction
@@ -92,7 +76,7 @@ contract AuctionHouse is PullPayment{// is Ownable{ (TODO: ownable here causes g
     Gas estimate: 149080
     */
 
-    function placeBid(uint _auctionId) external payable {
+    function placeBid(uint _auctionId) whenNotPaused external payable {
         Auction auction = Auction(auctions[_auctionId]);
         require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
         require(block.timestamp <= auction.endTime(), "Auction has expired.");
@@ -132,16 +116,10 @@ contract AuctionHouse is PullPayment{// is Ownable{ (TODO: ownable here causes g
        processPayouts(auction);
     }
 
-    // function withdrawAvailableBalance(address payable _to) external {
-    //     uint balance = availableBalanceToWithdraw[msg.sender];
-    //     assert(balance > 0);
-    //     assert(availableBalanceToWithdraw[msg.sender] - balance >= 0);
-    //     assert(address(this).balance - balance >= 0);
-    //     availableBalanceToWithdraw[msg.sender] -= balance;
-    //     (bool success, ) = _to.call{value: balance}("");
-    //     require(success, "Transfer failed");
-    //     emit AvailableBalanceUpdated(msg.sender, balance, availableBalanceToWithdraw[msg.sender]);
-    // }
+    function withdrawPayments(address payable payee) public nonReentrant override {
+        assert(this.payments(payee) > 0);
+        super.withdrawPayments(payee);
+    }
 
     function processPayouts(Auction auction) private {
         bool isReserveMet = auction.reserveMet();
@@ -153,7 +131,7 @@ contract AuctionHouse is PullPayment{// is Ownable{ (TODO: ownable here causes g
             return;
         }
 
-        //if reserve isnt met, refund them all\
+        //if reserve isnt met, refund them all
         if (isReserveMet){
 
             AuctionBid memory lastBid = auctionBids[auctionBids.length - 1];
@@ -167,7 +145,6 @@ contract AuctionHouse is PullPayment{// is Ownable{ (TODO: ownable here causes g
 
             //move to available to withdraw
             super._asyncTransfer(auction.auctionOwner(), lastBid.bid);
-            //availableBalanceToWithdraw[auction.auctionOwner()] += lastBid.bid;
             auctionsWonByUser[lastBid.bidder].push(auction.auctionId());
             emit AuctionEndedWithWinningBid(lastBid.bidder, auction.auctionId());
         }

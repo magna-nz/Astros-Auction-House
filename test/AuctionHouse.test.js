@@ -1,4 +1,5 @@
 const { assert } = require('chai');
+const truffleAssert = require('truffle-assertions');
 const {
     BN, 
     constants, 
@@ -10,9 +11,27 @@ const AuctionHouse = artifacts.require("AuctionHouse");
 
 contract("AuctionHouse", async (accounts) => {
     beforeEach(async () => {
-        this.ah = await AuctionHouse.new();
+        this.ah = await AuctionHouse.new({from:accounts[0]});
         
     });
+
+    // it("place auction, pause as owner, try place bid, revert", async () => {
+    //     var firstBidderAmount = "100000000000000000";
+    //     var reservePrice = "150000000000000000";
+
+    //     expectEvent(await this.ah.createPhysicalAuction(reservePrice, 50, "0x33333", 10420436704, {from: accounts[0]})
+    //     , 'AuctionCreated');
+
+    //     expectEvent(await this.ah.pauseContract({from: accounts[0]}), "Paused");
+
+    //     await truffleAssert.reverts(
+    //         this.ah.placeBid(1, {from:accounts[1], value: firstBidderAmount}), "Pausable: paused"
+    //         // this.ah.placeBid(1, {from:accounts[1], value: firstBidderAmount}), "Returned error: VM Exception while processing transaction: revert Pausable: paused -- Reason given: Pausable: paused."
+    //     );
+
+    //     //await expectRevert.unspecified(await this.ah.placeBid(1, {from:accounts[1], value: firstBidderAmount}));
+
+    // });
 
     it("revert when start price is less than reserve price", async () => {
         await expectRevert.unspecified(
@@ -344,7 +363,7 @@ contract("AuctionHouse", async (accounts) => {
         // - acc[1] has its own bid back
         // - acc[2] has its own bid back
         await this.ah.withdrawPayments(accounts[1], {from: accounts[1]});
-        assert.equal(await this.ah.payments(accounts[0]), 0);
+        assert.equal(await this.ah.payments(accounts[1]), 0);
 
         await this.ah.withdrawPayments(accounts[2], {from: accounts[2]});
         assert.equal(await this.ah.payments(accounts[2]), 0);
@@ -352,6 +371,72 @@ contract("AuctionHouse", async (accounts) => {
         //todo: improvement - check the account new balance is ( (prevBalance + withdrawAmount) - gasfee))
     });
 
+    it("pause contract as not owner, revert should happen", async () => {//Ownable: caller is not the owner
+        await truffleAssert.reverts(
+            this.ah.pauseContract({from: accounts[1]}), "Ownable: caller is not the owner"
+        );
+    });
 
+    it("pause contract as owner, check if paused, should be true", async () => {
+        expectEvent(await this.ah.pauseContract({from: accounts[0]}), "Paused");
+        assert.equal(await this.ah.paused(), true);
+    });
+
+    it("pause contract as owner, try place auction, revert", async () => {
+        expectEvent(await this.ah.pauseContract({from: accounts[0]}), "Paused");
+        await expectRevert.unspecified(
+            this.ah.createPhysicalAuction(256, 300, "0x543645645", 10420436704 ,{from: accounts[0]})
+        );
+
+        //assert no auctions were created
+        assert.equal(await this.ah.numberOfAuctions(), 0);
+    });
+
+    it("place auction, pause as owner, try place bid, revert", async () => {
+        var firstBidderAmount = "100000000000000000";
+        var reservePrice = "150000000000000000";
+
+        expectEvent(await this.ah.createPhysicalAuction(reservePrice, 50, "0x33333", 10420436704, {from: accounts[0]})
+        , 'AuctionCreated');
+
+        expectEvent(await this.ah.pauseContract({from: accounts[0]}), "Paused");
+
+        await truffleAssert.reverts(
+            this.ah.placeBid(1, {from:accounts[1], value: firstBidderAmount}), "Pausable: paused"
+        );
+
+
+    });
+
+    it("place auction, place bid, pause contract, auction owner can still end and bidders can still withdraw", async () => {
+        var firstBidderAmount = "100000000000000000";
+        var secondBidderAmount = "130000000000000000";
+        var reservePrice = "150000000000000000";
+
+        expectEvent(await this.ah.createPhysicalAuction(reservePrice, 50, "0x33333", 10420436704, {from: accounts[0]})
+        , 'AuctionCreated');
+
+        //place 2 bids
+        expectEvent(await this.ah.placeBid(1, {from:accounts[1], value: firstBidderAmount}), 'AuctionBidSuccessful');
+        expectEvent(await this.ah.placeBid(1, {from:accounts[2], value: secondBidderAmount}), 'AuctionBidSuccessful');
+
+        //Pause
+        expectEvent(await this.ah.pauseContract({from: accounts[0]}), "Paused");
+
+        //end the auction, should still be possible
+        expectEvent(await this.ah.endAuction(1, {from:accounts[0]}), 'AuctionEndedWithNoWinningBid');
+
+        //at this point
+        // - acc[0] has nothing to withdraw
+        // - acc[1] has its own bid back
+        // - acc[2] has its own bid back
+
+        await this.ah.withdrawPayments(accounts[1], {from: accounts[1]});
+        assert.equal(await this.ah.payments(accounts[1]), 0);
+
+        await this.ah.withdrawPayments(accounts[2], {from: accounts[2]});
+        assert.equal(await this.ah.payments(accounts[2]), 0);
+
+    });
 
 });

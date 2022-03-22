@@ -15,7 +15,7 @@ enum AuctionStatus { Open, Finished }
 
 //todo: move IAuctoin to derived class
 //todo: change name of class to just auction
-contract Auction is IAuction, Ownable{
+contract Auction is IAuction{
     //todo: refactor for variable packing
     bool public hasEnded;
     bool public reserveMet;
