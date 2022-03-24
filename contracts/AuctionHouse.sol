@@ -10,6 +10,8 @@ import ".././node_modules/@openzeppelin/contracts/security/Pausable.sol";
 import "./Auction.sol";
 import "./PhysicalAuction.sol";
 
+
+
 contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
     using Counters for Counters.Counter;
     using SafeMath for uint;
@@ -28,6 +30,11 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
     mapping(address => uint[]) public auctionsBidOnByUser; //points to index of bids the user has on auctions
     mapping(address => uint) public lockedBalanceInBids; //balance locked in bids for auctions as of current
     mapping(address => uint[]) public auctionsWonByUser;
+    
+    modifier isContractActive() {
+    require(block.number <= 9999999999); //placeholder
+    _;
+}
 
     constructor() {
     }
@@ -46,7 +53,7 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
     Creates an physical auction
     Gas estimate: 1491995
     */
-    function createPhysicalAuction(uint _reservePrice, uint _startPrice, bytes32 _auctionName, uint256 _endTime) whenNotPaused external {
+    function createPhysicalAuction(uint _reservePrice, uint _startPrice, bytes32 _auctionName, uint256 _endTime) whenNotPaused isContractActive external {
         require(_startPrice < _reservePrice, "Invalid start price");
         _auctionIdCounter.increment();
 
@@ -63,7 +70,7 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
     End an auction
     Gas estimate: 55180
     */
-    function endAuction(uint _auctionId) external {
+    function endAuction(uint _auctionId) isContractActive external {
         Auction auction = Auction(auctions[_auctionId]);
         require(address(auction) != address(0), "auction ID does not exist");
         require(msg.sender == auction.auctionOwner(), "only the auction owner can close an auction");
@@ -76,7 +83,7 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
     Gas estimate: 149080
     */
 
-    function placeBid(uint _auctionId) whenNotPaused external payable {
+    function placeBid(uint _auctionId) whenNotPaused isContractActive external payable {
         Auction auction = Auction(auctions[_auctionId]);
         require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
         require(block.timestamp <= auction.endTime(), "Auction has expired.");
@@ -116,8 +123,18 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
        processPayouts(auction);
     }
 
-    function withdrawPayments(address payable payee) public nonReentrant override {
-        assert(this.payments(payee) > 0);
+    function withdrawPayments(address payable payee) public nonReentrant isContractActive override {
+        require(msg.sender == payee, "Can only trigger funds for your own address");
+        require(this.payments(payee) > 0, "Nothing to withdraw");
+
+        /*
+        create struct of availablefunds (amount, time)
+        when someone tries to withdraw, check they have enough balancea nd store address -> availablefunds
+
+
+
+
+        */
         super.withdrawPayments(payee);
     }
 
