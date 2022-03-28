@@ -15,24 +15,6 @@ contract("AuctionHouse", async (accounts) => {
         
     });
 
-    // it("place auction, pause as owner, try place bid, revert", async () => {
-    //     var firstBidderAmount = "100000000000000000";
-    //     var reservePrice = "150000000000000000";
-
-    //     expectEvent(await this.ah.createPhysicalAuction(reservePrice, 50, "0x33333", 10420436704, {from: accounts[0]})
-    //     , 'AuctionCreated');
-
-    //     expectEvent(await this.ah.pauseContract({from: accounts[0]}), "Paused");
-
-    //     await truffleAssert.reverts(
-    //         this.ah.placeBid(1, {from:accounts[1], value: firstBidderAmount}), "Pausable: paused"
-    //         // this.ah.placeBid(1, {from:accounts[1], value: firstBidderAmount}), "Returned error: VM Exception while processing transaction: revert Pausable: paused -- Reason given: Pausable: paused."
-    //     );
-
-    //     //await expectRevert.unspecified(await this.ah.placeBid(1, {from:accounts[1], value: firstBidderAmount}));
-
-    // });
-
     it("revert when start price is less than reserve price", async () => {
         await expectRevert.unspecified(
             this.ah.createPhysicalAuction(256, 300, "0x543645645", 10420436704 ,{from: accounts[0]})
@@ -438,5 +420,8 @@ contract("AuctionHouse", async (accounts) => {
         assert.equal(await this.ah.payments(accounts[2]), 0);
 
     });
+
+
+    //Test fallback
 
 });

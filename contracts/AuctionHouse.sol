@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.10;
 
 import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/Counters.sol";
@@ -24,6 +24,7 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
     event AuctionEndedWithNoWinningBid(uint indexed _auctionId);
     event AuctionBidRefunded(address indexed _bidderRefunded, uint indexed _auctionId);
     event AvailableBalanceUpdated(address indexed _balanceHolder, uint amountChanged, uint newBalance);
+    event ContractValueReceived(address _messageSender, uint amount);
 
     mapping(uint => address) auctions; //auction ID => Auction child contract
     mapping(address => uint[]) public auctionsRunByUser; //points to index in auctions the current user has
@@ -190,5 +191,12 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
             emit AuctionBidRefunded(currentBid.bidder, auction.auctionId());
             emit AvailableBalanceUpdated(currentBid.bidder, currentBid.bid, super.payments(currentBid.bidder));
         }
+    }
+
+    //If someone sends ether directly to contract, then store it in escrow and allow them to return it
+    receive() external payable{
+        require(msg.value > 0, "Call needs to send ether");
+        super._asyncTransfer(msg.sender, msg.value);
+        emit ContractValueReceived(msg.sender, msg.value);
     }
 }
