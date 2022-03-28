@@ -18,19 +18,19 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
 
     Counters.Counter public numberOfAuctions;
     Counters.Counter private _auctionIdCounter;
-    event AuctionCreated(address indexed _auctionOwner, uint indexed _auctionId, uint _startPrice, uint _reservePrice, address indexed _auctionContract, uint _endTime);
-    event AuctionBidSuccessful(address indexed _bidderAddress, uint indexed _auctionId, uint bidValue, bool reserveMet);
-    event AuctionEndedWithWinningBid(address indexed _winningBidder, uint indexed _auctionId);
-    event AuctionEndedWithNoWinningBid(uint indexed _auctionId);
-    event AuctionBidRefunded(address indexed _bidderRefunded, uint indexed _auctionId);
-    event AvailableBalanceUpdated(address indexed _balanceHolder, uint amountChanged, uint newBalance);
+    event AuctionCreated(address indexed _auctionOwner, uint256 indexed _auctionId, uint256 _startPrice, uint256 _reservePrice, address indexed _auctionContract, uint64 _endTime);
+    event AuctionBidSuccessful(address indexed _bidderAddress, uint256 indexed _auctionId, uint bidValue, bool reserveMet);
+    event AuctionEndedWithWinningBid(address indexed _winningBidder, uint256 indexed _auctionId);
+    event AuctionEndedWithNoWinningBid(uint256 indexed _auctionId);
+    event AuctionBidRefunded(address indexed _bidderRefunded, uint256 indexed _auctionId);
+    event AvailableBalanceUpdated(address indexed _balanceHolder, uint256 amountChanged, uint256 newBalance);
     event ContractValueReceived(address _messageSender, uint amount);
 
-    mapping(uint => address) auctions; //auction ID => Auction child contract
-    mapping(address => uint[]) public auctionsRunByUser; //points to index in auctions the current user has
-    mapping(address => uint[]) public auctionsBidOnByUser; //points to index of bids the user has on auctions
-    mapping(address => uint) public lockedBalanceInBids; //balance locked in bids for auctions as of current
-    mapping(address => uint[]) public auctionsWonByUser;
+    mapping(uint256 => address) auctions; //auction ID => Auction child contract
+    mapping(address => uint256[]) public auctionsRunByUser; //points to index in auctions the current user has
+    mapping(address => uint256[]) public auctionsBidOnByUser; //points to index of bids the user has on auctions
+    mapping(address => uint256) public lockedBalanceInBids; //balance locked in bids for auctions as of current
+    mapping(address => uint256[]) public auctionsWonByUser;
     
     modifier isContractActive() {
     require(block.number <= 9999999999); //placeholder
@@ -52,9 +52,8 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
 
     /*
     Creates an physical auction
-    Gas estimate: 1491995
     */
-    function createPhysicalAuction(uint _reservePrice, uint _startPrice, bytes32 _auctionName, uint256 _endTime) whenNotPaused isContractActive external {
+    function createPhysicalAuction(uint256 _reservePrice, uint256 _startPrice, bytes16 _auctionName, uint64 _endTime) whenNotPaused isContractActive external {
         require(_startPrice < _reservePrice, "Invalid start price");
         _auctionIdCounter.increment();
 
@@ -69,9 +68,8 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
 
     /*
     End an auction
-    Gas estimate: 55180
     */
-    function endAuction(uint _auctionId) isContractActive external {
+    function endAuction(uint256 _auctionId) isContractActive external {
         Auction auction = Auction(auctions[_auctionId]);
         require(address(auction) != address(0), "auction ID does not exist");
         require(msg.sender == auction.auctionOwner(), "only the auction owner can close an auction");
@@ -84,7 +82,7 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
     Gas estimate: 149080
     */
 
-    function placeBid(uint _auctionId) whenNotPaused isContractActive external payable {
+    function placeBid(uint256 _auctionId) whenNotPaused isContractActive external payable {
         Auction auction = Auction(auctions[_auctionId]);
         require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
         require(block.timestamp <= auction.endTime(), "Auction has expired.");
@@ -102,7 +100,7 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
         AuctionBid memory newAuctionBid = AuctionBid({
             bid: msg.value,
             bidder: msg.sender,
-            timestamp: block.timestamp //todo: timestamp can be manipulated by miner
+            timestamp: block.timestamp
         });
 
 
@@ -128,14 +126,6 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
         require(msg.sender == payee, "Can only trigger funds for your own address");
         require(this.payments(payee) > 0, "Nothing to withdraw");
 
-        /*
-        create struct of availablefunds (amount, time)
-        when someone tries to withdraw, check they have enough balancea nd store address -> availablefunds
-
-
-
-
-        */
         super.withdrawPayments(payee);
     }
 
@@ -173,7 +163,7 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
         //refund all the bidders that needed to be refunded
         //if reserve was met it won't refund the last bid as that's already been transferred
         //to the auctionOwner above
-        for (uint i = 0; i < auctionBids.length; i++){
+        for (uint8 i = 0; i < auctionBids.length; i++){
             AuctionBid memory currentBid = auctionBids[i];
 
             //if you delete an item in memory, it zeros it out, the length is still the same
