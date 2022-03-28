@@ -59,7 +59,7 @@ contract AuctionHouse is ReentrancyGuard, PullPayment, Ownable, Pausable{
         _auctionIdCounter.increment();
 
         address auction = address(new PhysicalAuction(_reservePrice, _startPrice, address(this),
-                                                 _auctionName, _auctionIdCounter.current(), _endTime));
+                                                 _auctionName, _auctionIdCounter.current(), _endTime, msg.sender));
         numberOfAuctions.increment();
         auctions[_auctionIdCounter.current()] = auction;
         auctionsRunByUser[msg.sender].push(_auctionIdCounter.current());

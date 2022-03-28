@@ -37,7 +37,8 @@ contract Auction is IAuction{
                 address _ahAddress,
                 bytes32 _auctionName,
                 uint _auctionId,
-                uint256 _endTime) {
+                uint256 _endTime,
+                address _auctionOwner) {
 
         ahAddress = _ahAddress; //owner of this is auction house address which will call methods on this
         reservePrice = _reservePrice;
@@ -45,7 +46,7 @@ contract Auction is IAuction{
         startTime = block.timestamp;
         endTime = _endTime;
         auctionName = _auctionName;
-        auctionOwner = tx.origin;
+        auctionOwner = _auctionOwner;
         auctionId = _auctionId;
         auctionStatus = AuctionStatus.Open;
     }
