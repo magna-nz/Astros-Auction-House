@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.10;
+pragma solidity ^0.8.9;
 
 import "../interfaces/IAuction.sol";
 import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
@@ -8,8 +8,8 @@ import ".././node_modules/@openzeppelin/contracts/security/PullPayment.sol";
 
 struct AuctionBid{
     address bidder;
-    uint bid;
-    uint timestamp;
+    uint256 bid;
+    uint256 timestamp;
 }
 
 enum AuctionStatus { Open, Finished }
@@ -119,6 +119,11 @@ abstract contract Auction is IAuction, PullPayment{
         require(this.auctionStatus() != AuctionStatus.Finished, "Auction is already finished");
         auctionStatus = status;
     }
+
+    // function deposit(address payee) public payable override  {
+    //     super._deposits[payee] += amount;
+    //     emit Deposited(payee, amount);
+    // }
 
     function placeBid(address bidder, uint bidAmount) external payable virtual;
     function endAuction(address caller) external virtual;

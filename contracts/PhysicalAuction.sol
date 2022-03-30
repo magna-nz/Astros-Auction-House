@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.10;
+pragma solidity ^0.8.9;
 
 import "./Auction.sol";
 import "./AuctionHouse.sol";
@@ -83,7 +83,7 @@ contract PhysicalAuction is Auction{
         }
     }
 
-    function placeBid(address bidder, uint bidAmount) isAuctionHouse public payable override  {
+    function placeBid(address bidder, uint256 bidAmount) isAuctionHouse public payable override  {
         //PhysicalAuction auction = PhysicalAuction(physicalAuctions[_auctionId]);
         require(this.auctionOwner() != bidder, "You can't bid on your own auction");
         require(block.timestamp <= this.endTime(), "Auction has expired.");
@@ -105,8 +105,9 @@ contract PhysicalAuction is Auction{
         });
 
         super.placeBidOnAuction(newAuctionBid);
-
         super.updateIfReserveMet(bidAmount, bidder);
+        //super._asyncTransfer()
+        super._asyncTransfer(newAuctionBid.bidder, newAuctionBid.bid);
 
         //AuctionHouse ah = AuctionHouse(this.auctionHouse());
         //ah.auctionsBidOnByUser(msg.sender, auctionId);

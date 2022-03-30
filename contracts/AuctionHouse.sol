@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.10;
+pragma solidity ^0.8.9;
 
 import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/Counters.sol";
@@ -16,7 +16,7 @@ contract AuctionHouse is ReentrancyGuard, Ownable, Pausable{
     using Counters for Counters.Counter;
     using SafeMath for uint;
 
-    Counters.Counter public numberOfAuctions;
+    //Counters.Counter public numberOfAuctions;
     Counters.Counter private _auctionIdCounter;
     event AuctionCreated(address indexed _auctionOwner, uint256 indexed _auctionId, uint256 _startPrice, uint256 _reservePrice, address indexed _auctionContract, uint64 _endTime);
     // event AuctionBidSuccessful(address indexed _bidderAddress, uint256 indexed _auctionId, uint bidValue, bool reserveMet);
@@ -28,7 +28,7 @@ contract AuctionHouse is ReentrancyGuard, Ownable, Pausable{
 
     mapping(uint256 => PhysicalAuction) private physicalAuctions; //auction ID => Physical Auction child contract
     //mapping(uint256 => NFTAuction) private nftAuctions;
-    mapping(address => uint256[]) public auctionsRunByUser; //points to index in auctions the current user has
+    //mapping(address => uint256[]) public auctionsRunByUser; //points to index in auctions the current user has
     //mapping(address => uint256[]) public auctionsBidOnByUser; //points to index of bids the user has on auctions
     //mapping(address => uint256) public lockedBalanceInBids; //balance locked in bids for auctions as of current
     //mapping(address => uint256[]) public auctionsWonByUser;
@@ -60,9 +60,9 @@ contract AuctionHouse is ReentrancyGuard, Ownable, Pausable{
 
         PhysicalAuction auction = new PhysicalAuction(_reservePrice, _startPrice, address(this),
                                                  _auctionName, _auctionIdCounter.current(), _endTime, msg.sender);
-        numberOfAuctions.increment();
+        //numberOfAuctions.increment();
         physicalAuctions[_auctionIdCounter.current()] = auction;
-        auctionsRunByUser[msg.sender].push(_auctionIdCounter.current());
+        //auctionsRunByUser[msg.sender].push(_auctionIdCounter.current());
         
         emit AuctionCreated(msg.sender, _auctionIdCounter.current(), _startPrice, _reservePrice, address(auction), _endTime);
     }
