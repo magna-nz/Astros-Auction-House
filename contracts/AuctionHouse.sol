@@ -75,6 +75,7 @@ contract AuctionHouse is ReentrancyGuard, Ownable, Pausable{
         // PhysicalAuction auction = PhysicalAuction(physicalAuctions[_auctionId]);
         PhysicalAuction auction = physicalAuctions[_auctionId];
         require(address(auction) != address(0), "Auction ID does not exist");
+        //auction.endAuction{value:msg.value}(msg.sender);
         auction.endAuction(msg.sender);
         // // require(msg.sender == auction.auctionOwner(), "only the auction owner can close an auction");
         // // require(auction.auctionStatus() != AuctionStatus.Finished, "auction is already finished");
@@ -85,7 +86,8 @@ contract AuctionHouse is ReentrancyGuard, Ownable, Pausable{
         // PhysicalAuction auction = PhysicalAuction(physicalAuctions[_auctionId]);
         PhysicalAuction auction = physicalAuctions[_auctionId];
         require(address(auction) != address(0), "Auction ID does not exist");
-        auction.placeBid(msg.sender, msg.value);
+        auction.placeBid{value:msg.value}(msg.sender, msg.value);
+        //auction.placeBid(msg.sender, msg.value);
     }
 
     /*

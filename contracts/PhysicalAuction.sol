@@ -104,6 +104,8 @@ contract PhysicalAuction is Auction{
             timestamp: block.timestamp
         });
 
+        
+
         super.placeBidOnAuction(newAuctionBid);
         super.updateIfReserveMet(bidAmount, bidder);
         //super._asyncTransfer()
