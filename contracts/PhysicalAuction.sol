@@ -18,6 +18,8 @@ contract PhysicalAuction is Auction{
 
     }
 
+    /// @notice End a physical auction.
+    /// @dev End a physical auction. Overriden method.
     function endAuction(address caller) isAuctionHouse external payable override {
         require(caller == this.auctionOwner(), "only the auction owner can close an auction");
         require(this.auctionStatus() != AuctionStatus.Finished, "Auction is already finished");
@@ -28,7 +30,6 @@ contract PhysicalAuction is Auction{
 
     function processPayouts() private {
         AuctionBid[] memory auctionBids = super.getBids();
-        
         //if theres no bids, theres nothing to payout
         if (auctionBids.length == 0){
             emit AuctionEndedWithNoWinningBid(this.auctionId());
@@ -69,6 +70,8 @@ contract PhysicalAuction is Auction{
         }
     }
 
+    /// @notice Get a bid by its index
+    /// @dev Place bid on an auction. Overriden method
     function placeBid(address bidder, uint256 bidAmount) isAuctionHouse external payable override  {
         require(this.auctionOwner() != bidder, "You can't bid on your own auction");
         require(block.timestamp <= this.endTime(), "Auction has expired.");
