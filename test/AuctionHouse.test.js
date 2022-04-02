@@ -231,10 +231,11 @@ contract("AuctionHouse", async (accounts) => {
         );
     });
 
-    it("place auction acc[0], bid acc[1], end acc[1] - revert because cant end someone elses auction", async () => {
+    it("place auction (owner), bid (acc[1]), end (acc[1]) - revert because cant end someone elses auction", async () => {
         var endTime = 10420436704;
         var startPrice = 100;
         var reservePrice = 256;
+        var firstBidValue = 10000000;
 
         //act
         truffleAssert.eventEmitted(
@@ -246,9 +247,20 @@ contract("AuctionHouse", async (accounts) => {
                             && ev._reservePrice == reservePrice;
                                 });
 
+       //act                        
+       await this.ah.placeBidPhysicalAuction(1,  {from: accounts[1], value: firstBidValue});
        await expectRevert.unspecified(
             this.ah.endPhysicalAuction(1,  {from: accounts[1]})
        );
+
+       //assert
+       var auctionInstance = await Auction.at(contractAddress);
+       assert.equal(await auctionInstance.getBidCount(), 1);
+       assert.equal(await auctionInstance.endTime(), endTime);
+       assert.equal(await auctionInstance.auctionStatus(), '0');
+       assert.equal(await auctionInstance.depositsOf(accounts[0]), 0);
+       assert.equal(await auctionInstance.depositsOf(accounts[1]), firstBidValue);
+       assert.equal(await auctionInstance.depositsOf(accounts[2]), 0);
     });
 
     // it("place auction acc[0], no bidders, end acc[0], txn successful, auction closed", async () => {
