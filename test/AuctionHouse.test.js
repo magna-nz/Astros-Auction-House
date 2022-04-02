@@ -131,7 +131,6 @@ contract("AuctionHouse", async (accounts) => {
                             && ev._reservePrice == reservePrice;
                                 });
 
-        //place the bid
         //todo: check events emitted from child contracts.
         await this.ah.placeBidPhysicalAuction(1,  {from: accounts[1], value: firstBidValue});
         
@@ -168,7 +167,6 @@ contract("AuctionHouse", async (accounts) => {
                             && ev._reservePrice == reservePrice;
                                 });
 
-        //place the bid
         //todo: check events emitted from child contracts.
         await this.ah.placeBidPhysicalAuction(1,  {from: accounts[1], value: firstBidValue});
         await this.ah.placeBidPhysicalAuction(1,  {from: accounts[2], value: secondBidValue});
@@ -267,8 +265,6 @@ contract("AuctionHouse", async (accounts) => {
         var endTime = 10420436704;
         var startPrice = 100;
         var reservePrice = 256;
-        //var firstBidValue = 10000000;
-        //var secondBidValue = 12000000;
 
         //act
         truffleAssert.eventEmitted(
@@ -418,6 +414,7 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("place auction (acc[0]), bid (acc[1]), bid (acc[2]), end (acc[0]), reserve not met, withdraw balance (acc[1]), withdraw balance acc[2]", async () => {
+
         //arrange
         var contractAddress;
         var endTime = 10420436704;
@@ -493,73 +490,83 @@ contract("AuctionHouse", async (accounts) => {
         await truffleAssert.reverts(
             this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}), "Pausable: paused"
         );
-
-        
-        // //assert
-        // var auctionInstance = await Auction.at(contractAddress);
-        // assert.equal(await auctionInstance.getBidCount(), 2);
-        // assert.equal(await auctionInstance.endTime(), endTime);
-        // assert.equal(await auctionInstance.auctionStatus(), '1');
-        // assert.equal(await auctionInstance.depositsOf(accounts[0]), 13000000);
-        // assert.equal(await auctionInstance.depositsOf(accounts[1]), 12000000);
-        // assert.equal(await auctionInstance.depositsOf(accounts[2]), 0);
-        // //assert no auctions were created
-        // assert.equal(await this.ah.numberOfAuctions(), 0);
     });
 
-    // it("place auction, pause as owner, try place bid, revert", async () => {
-    //     var firstBidderAmount = "100000000000000000";
-    //     var reservePrice = "150000000000000000";
+    it("place auction, pause as owner, try place bid, revert", async () => {
 
-    //     truffleAssert.eventEmitted(await this.ah.createPhysicalAuction(reservePrice, 50, "0x33333", 10420436704, {from: accounts[0]}),
-    //                             "AuctionCreated");
+         //arrange
+         var endTime = 10420436704;
+         var startPrice = 10000000;
+         var reservePrice = 18000000;
+         var firstBidValue = 12000000;
+ 
+         //act
+         truffleAssert.eventEmitted(
+             await this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}),
+                 "AuctionCreated", (ev) => {
+                     contractAddress = ev._auctionContract;
+                     return ev._endTime == endTime && ev._auctionOwner == accounts[0]
+                             && ev._auctionId == 1 && ev._startPrice == startPrice
+                             && ev._reservePrice == reservePrice;
+                                 });
 
-    //     truffleAssert.eventEmitted(await this.ah.pauseContract({from: accounts[0]}),
-    //                             "Paused");
+        truffleAssert.eventEmitted(await this.ah.pauseContract({from: accounts[0]}),
+                                "Paused");
 
-    //     await truffleAssert.reverts(
-    //         this.ah.placeBid(1, {from:accounts[1], value: firstBidderAmount}), "Pausable: paused"
-    //     );
+        await truffleAssert.reverts(
+            this.ah.placeBidPhysicalAuction(1,  {from: accounts[1], value: firstBidValue}), "Pausable: paused"
+        );
+    });
 
+    it("place auction, place bid, pause contract, auction owner can still end and bidders can still withdraw", async () => {
 
-    // });
+        //arrange
+        var contractAddress;
+        var endTime = 10420436704;
+        var startPrice = 10000000;
+        var reservePrice = 18000000;
+        var firstBidValue = 12000000;
+        var secondBidValue = 13000000;
 
-    // it("place auction, place bid, pause contract, auction owner can still end and bidders can still withdraw", async () => {
-    //     var firstBidderAmount = "100000000000000000";
-    //     var secondBidderAmount = "130000000000000000";
-    //     var reservePrice = "150000000000000000";
+        //act
+        truffleAssert.eventEmitted(
+            await this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}),
+                "AuctionCreated", (ev) => {
+                    contractAddress = ev._auctionContract;
+                    return ev._endTime == endTime && ev._auctionOwner == accounts[0]
+                            && ev._auctionId == 1 && ev._startPrice == startPrice
+                            && ev._reservePrice == reservePrice;
+                                });
 
-    //     truffleAssert.eventEmitted(await this.ah.createPhysicalAuction(reservePrice, 50, "0x33333", 10420436704, {from: accounts[0]}),
-    //                             "AuctionCreated");
+        //place 2 bids
+        //todo: check events emitted from child contracts.
+        await this.ah.placeBidPhysicalAuction(1,  {from: accounts[1], value: firstBidValue});
+        await this.ah.placeBidPhysicalAuction(1,  {from: accounts[2], value: secondBidValue});
 
-    //     //place 2 bids
-    //     truffleAssert.eventEmitted(await this.ah.placeBid(1, {from:accounts[1], value: firstBidderAmount}),
-    //                             "AuctionBidSuccessful");
-    //     truffleAssert.eventEmitted(await this.ah.placeBid(1, {from:accounts[2], value: secondBidderAmount}),
-    //                             "AuctionBidSuccessful");
+        //Pause
+        truffleAssert.eventEmitted(await this.ah.pauseContract({from: accounts[0]}),
+                                "Paused");
 
-    //     //Pause
-    //     truffleAssert.eventEmitted(await this.ah.pauseContract({from: accounts[0]}),
-    //                             "Paused");
+        //end of auction - people should still be able to withdraw their bids even if paused
+        await this.ah.endPhysicalAuction(1,  {from: accounts[0]});
 
-    //     //end the auction, should still be possible
-    //     truffleAssert.eventEmitted(await this.ah.endAuction(1, {from:accounts[0]}),
-    //                             "AuctionEndedWithNoWinningBid");
+        //assert
+        var auctionInstance = await Auction.at(contractAddress);
+        assert.equal(await auctionInstance.depositsOf(accounts[0]), 0);
+        assert.equal(await auctionInstance.depositsOf(accounts[1]), firstBidValue);
+        assert.equal(await auctionInstance.depositsOf(accounts[2]), secondBidValue);
 
-    //     //at this point
-    //     // - acc[0] has nothing to withdraw
-    //     // - acc[1] has its own bid back
-    //     // - acc[2] has its own bid back
+        //at this point
+        // - acc[0] has nothing to withdraw
+        // - acc[1] has its own bid back
+        // - acc[2] has its own bid back
+        await this.ah.withdrawPayments(1, accounts[1]);
+        await this.ah.withdrawPayments(1, accounts[2]);
 
-    //     await this.ah.withdrawPayments(accounts[1], {from: accounts[1]});
-    //     assert.equal(await this.ah.payments(accounts[1]), 0);
+        assert.equal(await auctionInstance.depositsOf(accounts[0]), 0);
+        assert.equal(await auctionInstance.depositsOf(accounts[1]), 0);
+        assert.equal(await auctionInstance.depositsOf(accounts[2]), 0);
 
-    //     await this.ah.withdrawPayments(accounts[2], {from: accounts[2]});
-    //     assert.equal(await this.ah.payments(accounts[2]), 0);
-
-    // });
-
-
-    //Test fallback
+    });
 
 });
