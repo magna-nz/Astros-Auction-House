@@ -2,8 +2,6 @@
 pragma solidity ^0.8.9;
 
 import "../interfaces/IAuction.sol";
-//import ".././node_modules/@openzeppelin/contracts/utils/escrow/Escrow.sol";
-// import ".././node_modules/@openzeppelin/contracts/security/PullPayment.sol";
 import "./AuctionEscrow.sol";
 
 
@@ -63,24 +61,10 @@ abstract contract Auction is IAuction, AuctionEscrow{
         auctionOwner = _auctionOwner;
         auctionId = _auctionId;
         auctionStatus = AuctionStatus.Open;
-        //auctionHouse = _auctionHouse;
     }
 
-    // function _asyncTransfer(address dest, uint256 amount) internal payable override  {
-    //     super._asyncTransfer{value: amount}(dest);
-    // }
 
-    // function deposit(address payee) public payable virtual onlyOwner {
-    //     uint256 amount = msg.value;
-    //     _deposits[payee] += amount;
-    //     emit Deposited(payee, amount);
-    // }
-
-    // function deposit(address payee)  public payable override onlyOwner{
-
-    // }
-
-    //safe math  here
+  //todo: safe math  here
    function getLastBid() external view returns(AuctionBid memory){
        return bids[bids.length-1];
    }
@@ -95,7 +79,6 @@ abstract contract Auction is IAuction, AuctionEscrow{
        auctionStatus = AuctionStatus.Finished;
    }
 
-   //todo why can't we get it from public var?
    function getBids() public view returns (AuctionBid[] memory){
        return bids;
    }
@@ -115,7 +98,6 @@ abstract contract Auction is IAuction, AuctionEscrow{
     }
 
     function getBidByIndex(uint _index) public view returns (AuctionBid memory){
-        //if statement? require? assert?
         assert(_index <= bids.length);
         return bids[_index];
     }
@@ -136,10 +118,6 @@ abstract contract Auction is IAuction, AuctionEscrow{
         auctionStatus = status;
     }
 
-    // function deposit(address payee) public payable override  {
-    //     super._deposits[payee] += amount;
-    //     emit Deposited(payee, amount);
-    // }
 
     function placeBid(address bidder, uint bidAmount) external payable virtual;
     function endAuction(address caller) external payable virtual;
@@ -153,44 +131,4 @@ abstract contract Auction is IAuction, AuctionEscrow{
         require(super.depositsOf(payee) > 0, "Nothing to withdraw");
         super.withdraw(payee);
     }
-    // function withdraw(address payable payee) public override{
-    //     //require(caller == payee, "Can only trigger funds for your own address");
-    //     require(super.depositsOf(payee) > 0, "Nothing to withdraw");
-
-    //     super.withdraw(payee);
-    // }
-
-    //  { whenNotPaused isContractActive
-    //     PhysicalAuction auction = PhysicalAuction(physicalAuctions[_auctionId]);
-    //     require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
-    //     require(block.timestamp <= auction.endTime(), "Auction has expired.");
-    //     require(auction.auctionStatus() != AuctionStatus.Finished, "You can't bid on an auction that's ended");
-    //     require(msg.value > auction.startPrice(), "Auction must be greater than start price");
-
-    //     //get the last bid and compare it if there's already a bid on it
-    //     if (auction.getBidCount() != 0){
-    //         AuctionBid memory lastAuctionBid = auction.getBidByIndex(auction.getBidCount().sub(1)); //todo: safemath
-    //         //lastAuctionBid = auction.bids[auction.getBidCount() - 1];
-    //         require(msg.value > lastAuctionBid.bid, "bid not high enough");
-    //     }
-
-    //     //add the bid to the auction
-    //     AuctionBid memory newAuctionBid = AuctionBid({
-    //         bid: msg.value,
-    //         bidder: msg.sender,
-    //         timestamp: block.timestamp
-    //     });
-
-
-    //     auction.placeBidOnAuction(newAuctionBid);
-
-    //     auction.updateIfReserveMet(msg.value, msg.sender);
-
-    //     auctionsBidOnByUser[msg.sender].push(_auctionId);
-
-    //     //keep a track of locked funds for someone bidding
-    //     lockedBalanceInBids[msg.sender] += msg.value;
-
-    //     emit AuctionBidSuccessful(msg.sender, _auctionId, msg.value, auction.reserveMet());
-    // }
 }

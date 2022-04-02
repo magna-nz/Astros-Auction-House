@@ -34,7 +34,6 @@ contract AuctionEscrow is Ownable {
 
     function moveFundsBetween(address from, address to, uint256 amount) internal virtual onlyOwner{
         //check theres enough balances
-        //uint256 balance = _deposits[from];
         require(_deposits[from] >= amount, "not enough funds to move");
         assert(_deposits[from].sub(amount) >= 0);
         require((_deposits[to] + amount) >= 0, "to address should be over 0 if moving funds");

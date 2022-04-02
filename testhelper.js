@@ -15,9 +15,6 @@ var end = await ins.endPhysicalAuction(1, {from:accounts[0]});
 //check available balance
 var withdrawal = await ins.withdrawPayments(1, accounts[0]);
 
-//after auction ends
-var lockedBalanceForBidder = await ins.lockedBalanceInBids(accounts[0]);
-var avail1 = await ins.availableBalanceToWithdraw(accounts[2]);
 
 //gas estimation:
 var txn = await ins.createPhysicalAuction.estimateGas(100,50,"0x000", 1010420436704);
