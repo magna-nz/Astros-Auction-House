@@ -146,39 +146,42 @@ contract("AuctionHouse", async (accounts) => {
         assert.equal(await auctionInstance.depositsOf(accounts[0]), 0);
         assert.equal(await auctionInstance.depositsOf(accounts[1]), firstBidValue);
         assert.equal(await auctionInstance.depositsOf(accounts[2]), 0);
-
-        // //no locked balance for new bidder because bid failed
-        // assert.equal(await this.ah.lockedBalanceInBids(accounts[2]), 0);
-
-        // //locked balance for first bidder still correct
-        // assert.equal(await this.ah.lockedBalanceInBids(accounts[1]), 10000000);
-
-        //check bid length on auction contract, should be 0
-
-        //check auctionsbidbyuser has 0 item in the array
     });
 
-    // it("can make bid on auction with bids already", async () => {
-    //     //todo: get the auctionid from the log event
-    //     truffleAssert.eventEmitted(await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704 ,{from: accounts[0]}),
-    //                             "AuctionCreated");
+    it("can make bid on auction with bids already", async () => {
+        
+        //arrange
+        var contractAddress;
+        var endTime = 10420436704;
+        var startPrice = 100;
+        var reservePrice = 256;
+        var firstBidValue = 10000000;
+        var secondBidValue = 12000000;
 
-    //     //place the bid
-    //     truffleAssert.eventEmitted(await this.ah.placeBid(1,  {from: accounts[1], value:10000000}),
-    //                             "AuctionBidSuccessful");
+        //act
+        truffleAssert.eventEmitted(
+            await this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}),
+                "AuctionCreated", (ev) => {
+                    contractAddress = ev._auctionContract;
+                    return ev._endTime == endTime && ev._auctionOwner == accounts[0]
+                            && ev._auctionId == 1 && ev._startPrice == startPrice
+                            && ev._reservePrice == reservePrice;
+                                });
 
-    //     truffleAssert.eventEmitted(await this.ah.placeBid(1,  {from: accounts[2], value:12000000}),
-    //                             "AuctionBidSuccessful");
+        //place the bid
+        //todo: check events emitted from child contracts.
+        await this.ah.placeBidPhysicalAuction(1,  {from: accounts[1], value: firstBidValue});
+        await this.ah.placeBidPhysicalAuction(1,  {from: accounts[2], value: secondBidValue});
 
-
-    //     assert.equal(await this.ah.lockedBalanceInBids(accounts[1]), 10000000);
-
-    //     assert.equal(await this.ah.lockedBalanceInBids(accounts[2]), 12000000);
-
-    //     //check bid length on auction contract, should be 2
-
-    //     //check auctionsbidbyuser has 2 item in the array
-    // });
+        //assert
+        var auctionInstance = await Auction.at(contractAddress);
+        assert.equal(await auctionInstance.getBidCount(), 2);
+        assert.equal(await auctionInstance.endTime(), endTime);
+        assert.equal(await auctionInstance.auctionStatus(), '0');
+        assert.equal(await auctionInstance.depositsOf(accounts[0]), 0);
+        assert.equal(await auctionInstance.depositsOf(accounts[1]), firstBidValue);
+        assert.equal(await auctionInstance.depositsOf(accounts[2]), secondBidValue);
+    });
 
     // it("when an address makes a bid on auction theyve already bidded on - locked balance should be the sum", async () => {
     //     //todo: get the auctionid from the log event
