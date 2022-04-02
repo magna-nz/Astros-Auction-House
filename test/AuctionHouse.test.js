@@ -149,7 +149,7 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("can make bid on auction with bids already", async () => {
-        
+
         //arrange
         var contractAddress;
         var endTime = 10420436704;
@@ -183,31 +183,33 @@ contract("AuctionHouse", async (accounts) => {
         assert.equal(await auctionInstance.depositsOf(accounts[2]), secondBidValue);
     });
 
-    // it("when an address makes a bid on auction theyve already bidded on - locked balance should be the sum", async () => {
-    //     //todo: get the auctionid from the log event
+    it("when two bids placed - locked balance in escrow should be the sum of the two", async () => {
+        //arrange
+        var contractAddress;
+        var endTime = 10420436704;
+        var startPrice = 100;
+        var reservePrice = 256;
+        var firstBidValue = 10000000;
+        var secondBidValue = 12000000;
 
-    //     truffleAssert.eventEmitted(await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704 ,{from: accounts[0]}),
-    //                             "AuctionCreated");
+        //act
+        truffleAssert.eventEmitted(
+            await this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}),
+                "AuctionCreated", (ev) => {
+                    contractAddress = ev._auctionContract;
+                    return ev._endTime == endTime && ev._auctionOwner == accounts[0]
+                            && ev._auctionId == 1 && ev._startPrice == startPrice
+                            && ev._reservePrice == reservePrice;
+                                });
 
-    //     var firstBidInWei = 10000000;
-    //     var secondBidInWei = 12000000;
+        //todo: check events emitted from child contracts.
+        await this.ah.placeBidPhysicalAuction(1,  {from: accounts[1], value: firstBidValue});
+        await this.ah.placeBidPhysicalAuction(1,  {from: accounts[2], value: secondBidValue});
 
-    //     //place the bid
-    //     truffleAssert.eventEmitted(await this.ah.placeBid(1,  {from: accounts[1], value: firstBidInWei}),
-    //                             "AuctionBidSuccessful");
-
-    //     truffleAssert.eventEmitted(await this.ah.placeBid(1,  {from: accounts[1], value:secondBidInWei}),
-    //                             "AuctionBidSuccessful");
-
-    //     //sum of
-    //     assert.equal(await this.ah.lockedBalanceInBids(accounts[1]), (firstBidInWei + secondBidInWei));
-
-    //     assert.equal(await this.ah.lockedBalanceInBids(accounts[2]), 0);
-
-    //     //check bid length on auction contract, should be 2
-
-    //     //check auctionsbidbyuser has 2 item in the array
-    // });
+        //assert
+        var auctionInstance = await Auction.at(contractAddress);
+        assert.equal(await web3.eth.getBalance(auctionInstance.address), (firstBidValue + secondBidValue));
+    });
 
     // it("end auction with auction id that doesn't exist - revert", async () => {
     //     //auctionId 1 is created
