@@ -2,8 +2,9 @@
 pragma solidity ^0.8.9;
 
 import "../interfaces/IAuction.sol";
-import ".././node_modules/@openzeppelin/contracts/utils/escrow/Escrow.sol";
+//import ".././node_modules/@openzeppelin/contracts/utils/escrow/Escrow.sol";
 // import ".././node_modules/@openzeppelin/contracts/security/PullPayment.sol";
+import "./AuctionEscrow.sol";
 
 
 struct AuctionBid{
@@ -15,7 +16,7 @@ struct AuctionBid{
 enum AuctionStatus { Open, Finished }
 
 
-abstract contract Auction is IAuction, Escrow{
+abstract contract Auction is IAuction, AuctionEscrow{
     event AuctionBidSuccessful(address indexed _bidderAddress, uint256 indexed _auctionId, uint bidValue, bool reserveMet);
     event AuctionEndedWithWinningBid(address indexed _winningBidder, uint256 indexed _auctionId);
     event AuctionEndedWithNoWinningBid(uint256 indexed _auctionId);
@@ -144,12 +145,12 @@ abstract contract Auction is IAuction, Escrow{
     function endAuction(address caller) external payable virtual;
     function processPayouts() internal virtual;
 
-    function withdraw(address payable payee) public override{
-        //require(caller == payee, "Can only trigger funds for your own address");
-        require(super.depositsOf(payee) > 0, "Nothing to withdraw");
+    // function withdraw(address payable payee) public override{
+    //     //require(caller == payee, "Can only trigger funds for your own address");
+    //     require(super.depositsOf(payee) > 0, "Nothing to withdraw");
 
-        super.withdraw(payee);
-    }
+    //     super.withdraw(payee);
+    // }
 
     //  { whenNotPaused isContractActive
     //     PhysicalAuction auction = PhysicalAuction(physicalAuctions[_auctionId]);

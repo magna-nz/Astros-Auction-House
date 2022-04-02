@@ -50,13 +50,16 @@ contract PhysicalAuction is Auction{
             //Pay the Winner
             //use the last bid and move funds around
             //lockedBalanceInBids[lastBid.bidder] -= (lastBid.bid);
+            super.moveFundsBetween(lastBid.bidder, this.auctionOwner(), lastBid.bid);
 
             //move to available to withdraw
             //todo: the money should be in the contract now
             //super._asyncTransfer(this.auctionOwner(), lastBid.bid);
 // auction.placeBid{value:msg.value}(msg.sender, msg.value);
+            //this.deposit()
             //super.deposit{value:lastBid.bid()}(this.auctionOwner(), lastBid.bid);
             //auctionsWonByUser[lastBid.bidder].push(auction.auctionId());
+
             emit AuctionEndedWithWinningBid(lastBid.bidder, this.auctionId());
         }
         else{
@@ -80,7 +83,7 @@ contract PhysicalAuction is Auction{
             //lockedBalanceInBids[currentBid.bidder] -= currentBid.bid;
 
             //super._asyncTransfer(currentBid.bidder, currentBid.bid);
-
+            
             emit AuctionBidRefunded(currentBid.bidder, this.auctionId());
             emit AvailableBalanceUpdated(currentBid.bidder, currentBid.bid, super.depositsOf(currentBid.bidder));
         }

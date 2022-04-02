@@ -29,12 +29,18 @@ var txn = await ins.createPhysicalAuction.estimateGas(100,50,"0x000", 1010420436
 
 
 //contract instance
-var auctionInstance = await Auction.at("0xa6ca7d0775c3bac8e392e1e43f5e0390eb8590fd");
-var balance = await web3.eth.getBalance("0xa6ca7d0775c3bac8e392e1e43f5e0390eb8590fd");
+var auctionInstance = await Auction.at("0x02b6f5a377d207311fc5fbd114f08b2b13f5145a");
+var balance = await web3.eth.getBalance("0x02b6f5a377d207311fc5fbd114f08b2b13f5145a");
 var bidCount = await auctionInstance.getBidCount().then(d => { console.log(d.toString())});
 var endTime = await auctionInstance.endTime().then(d => { console.log(d.toString())});
 var getLastBid = await auctionInstance.getLastBid().then(d => { console.log(d.toString())});
 var status = await auctionInstance.auctionStatus();
+var winner = await auctionInstance.auctionWinner();
+
+var depositsOfAcc0 = await auctionInstance.depositsOf(accounts[0]).then(d => { console.log(d.toString())});
+var depositsOfAcc1 = await auctionInstance.depositsOf(accounts[1]).then(d => { console.log(d.toString())});
+var depositsOfAcc2 = await auctionInstance.depositsOf(accounts[2]).then(d => { console.log(d.toString())});
+
 //first bid
 var bid = await auction2.getBidByIndex(0).then(d => { console.log(d) });
 await auction2.reserveMet();

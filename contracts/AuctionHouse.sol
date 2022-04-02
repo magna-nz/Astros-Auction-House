@@ -68,7 +68,9 @@ contract AuctionHouse is ReentrancyGuard, Ownable, Pausable{
     }
 
     /*
-    End an auction
+    End an auction.
+    Right now the auction Owner has to end it, so they have to pay to end
+    In future, I would like to read from an oracle about the state and update it that way
     */
 
     function endPhysicalAuction(uint256 _auctionId) isContractActive external {
