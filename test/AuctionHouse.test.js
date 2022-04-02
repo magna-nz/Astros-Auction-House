@@ -47,21 +47,37 @@ contract("AuctionHouse", async (accounts) => {
         assert.equal(await auctionInstance.depositsOf(accounts[1]), 0);
     });
 
-    // it("auction owner cant bid on his own auction", async () => {
-    //     truffleAssert.eventEmitted(await this.ah.createPhysicalAuction(256, 100, "0x543645645", 10420436704, {from: accounts[0]}),
-    //                             "AuctionCreated");
+    it("auction owner cant bid on his own auction", async () => {
+        //arrange
+        var contractAddress;
+        var endTime = 10420436704;
+        var startPrice = 100;
+        var reservePrice = 256;
+        var firstBidValue = 10000000;
 
-    //     //try place bid
-    //     await truffleAssert.reverts(
-    //         this.ah.placeBid(1,  {from: accounts[0], value:10000000}), "You can't bid on your own auction"
-    //     );
+        //act
+        truffleAssert.eventEmitted(
+            await this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}),
+                "AuctionCreated", (ev) => {
+                    contractAddress = ev._auctionContract;
+                    return ev._endTime == endTime && ev._auctionOwner == accounts[0]
+                            && ev._auctionId == 1 && ev._startPrice == startPrice
+                            && ev._reservePrice == reservePrice;
+                                });
 
-    //     //make sure no bids have been added
-    //     //todo: call the get bids by auction ID to check when that's implemented
-        
-    //     //no lockedbalance for user
-    //     assert.equal(await this.ah.lockedBalanceInBids(accounts[0]), 0);
-    // });
+        //try place bid
+        await truffleAssert.reverts(
+            this.ah.placeBidPhysicalAuction(1,  {from: accounts[0], value: firstBidValue}), "You can't bid on your own auction"
+        );
+
+        //assert
+        var auctionInstance = await Auction.at(contractAddress);
+        assert.equal(await auctionInstance.getBidCount(), 0);
+        assert.equal(await auctionInstance.endTime(), endTime);
+        assert.equal(await auctionInstance.auctionStatus(), '0');
+        assert.equal(await auctionInstance.depositsOf(accounts[0]), 0);
+        assert.equal(await auctionInstance.depositsOf(accounts[1]), 0);
+    });
 
     // it("can make bid on an auction with no bids", async () => {
 
