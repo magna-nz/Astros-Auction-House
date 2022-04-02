@@ -111,29 +111,52 @@ contract("AuctionHouse", async (accounts) => {
         assert.equal(await auctionInstance.depositsOf(accounts[1]), firstBidValue);
     });
 
-    // it("make a bid less than the current high bid and revert", async () => {
+    it("make a bid less than the current high bid and revert", async () => {
 
-    //     truffleAssert.eventEmitted(await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704, {from: accounts[0]}),
-    //                             "AuctionCreated");
-    //     //todo: get the auctionid from the log event
+        //arrange
+        var contractAddress;
+        var endTime = 10420436704;
+        var startPrice = 100;
+        var reservePrice = 256;
+        var firstBidValue = 10000000;
+        var secondBidValueBelowCurrentBid = 00000001;
 
-    //     //place the bid
+        //act
+        truffleAssert.eventEmitted(
+            await this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}),
+                "AuctionCreated", (ev) => {
+                    contractAddress = ev._auctionContract;
+                    return ev._endTime == endTime && ev._auctionOwner == accounts[0]
+                            && ev._auctionId == 1 && ev._startPrice == startPrice
+                            && ev._reservePrice == reservePrice;
+                                });
+
+        //place the bid
+        //todo: check events emitted from child contracts.
+        await this.ah.placeBidPhysicalAuction(1,  {from: accounts[1], value: firstBidValue});
         
-    //     await this.ah.placeBid(1,  {from: accounts[1], value:10000000});
-        
-    //     await expectRevert.unspecified(this.ah.placeBid(1,  {from: accounts[2], value:00000001})
-    //     );
+        await expectRevert.unspecified(this.ah.placeBidPhysicalAuction(1,  {from: accounts[2], value: secondBidValueBelowCurrentBid})
+        );
 
-    //     //no locked balance for new bidder because bid failed
-    //     assert.equal(await this.ah.lockedBalanceInBids(accounts[2]), 0);
+        //assert
+        var auctionInstance = await Auction.at(contractAddress);
+        assert.equal(await auctionInstance.getBidCount(), 1);
+        assert.equal(await auctionInstance.endTime(), endTime);
+        assert.equal(await auctionInstance.auctionStatus(), '0');
+        assert.equal(await auctionInstance.depositsOf(accounts[0]), 0);
+        assert.equal(await auctionInstance.depositsOf(accounts[1]), firstBidValue);
+        assert.equal(await auctionInstance.depositsOf(accounts[2]), 0);
 
-    //     //locked balance for first bidder still correct
-    //     assert.equal(await this.ah.lockedBalanceInBids(accounts[1]), 10000000);
+        // //no locked balance for new bidder because bid failed
+        // assert.equal(await this.ah.lockedBalanceInBids(accounts[2]), 0);
 
-    //     //check bid length on auction contract, should be 0
+        // //locked balance for first bidder still correct
+        // assert.equal(await this.ah.lockedBalanceInBids(accounts[1]), 10000000);
 
-    //     //check auctionsbidbyuser has 0 item in the array
-    // });
+        //check bid length on auction contract, should be 0
+
+        //check auctionsbidbyuser has 0 item in the array
+    });
 
     // it("can make bid on auction with bids already", async () => {
     //     //todo: get the auctionid from the log event
