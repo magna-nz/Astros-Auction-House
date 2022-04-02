@@ -66,7 +66,8 @@ abstract contract Auction is IAuction, AuctionEscrow{
 
   //todo: safe math  here
    function getLastBid() external view returns(AuctionBid memory){
-       return bids[bids.length-1];
+        require(bids.length > 0, "Cant get last bid unless theres a previous bid");
+        return bids[bids.length-1];
    }
 
    function close() internal virtual {
@@ -83,18 +84,8 @@ abstract contract Auction is IAuction, AuctionEscrow{
        return bids;
    }
 
-   //can remove
-   function makeBid() external returns (bool){
-
-   }
-
-
-   function removeBid() external returns (bool){
-
-   }
-
    function getBidCount() public view returns(uint count) {
-    return bids.length;
+        return bids.length;
     }
 
     function getBidByIndex(uint _index) public view returns (AuctionBid memory){
@@ -117,8 +108,7 @@ abstract contract Auction is IAuction, AuctionEscrow{
         require(this.auctionStatus() != AuctionStatus.Finished, "Auction is already finished");
         auctionStatus = status;
     }
-
-
+    
     function placeBid(address bidder, uint bidAmount) external payable virtual;
     function endAuction(address caller) external payable virtual;
     function processPayouts() internal virtual;

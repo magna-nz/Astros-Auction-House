@@ -13,21 +13,20 @@ import "./NFTAuction.sol";
 
 
 contract AuctionHouse is ReentrancyGuard, Ownable, Pausable{
-    using Counters for Counters.Counter;
-    using SafeMath for uint;
-
-    Counters.Counter private _auctionIdCounter;
-    event AuctionCreated(address indexed _auctionOwner, uint256 indexed _auctionId, uint256 _startPrice, uint256 _reservePrice, address indexed _auctionContract, uint64 _endTime);
-
-    event ContractValueReceived(address _messageSender, uint amount);
-
-    mapping(uint256 => PhysicalAuction) private physicalAuctions; //auction ID => Physical Auction child contract
-    
     modifier isContractActive() {
         require(block.number <= 9999999999); //placeholder
         _;
     }
 
+    using Counters for Counters.Counter;
+    using SafeMath for uint;
+
+    event AuctionCreated(address indexed _auctionOwner, uint256 indexed _auctionId, uint256 _startPrice, uint256 _reservePrice, address indexed _auctionContract, uint64 _endTime);
+    event ContractValueReceived(address _messageSender, uint amount);
+
+    Counters.Counter private _auctionIdCounter;
+    mapping(uint256 => PhysicalAuction) private physicalAuctions; //auction ID => Physical Auction child contract
+    
     constructor() {
     }
 
