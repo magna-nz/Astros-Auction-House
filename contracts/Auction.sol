@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.1;
 
-import "../interfaces/IAuction.sol";
+//import "../interfaces/IAuction.sol";
 import "./AuctionEscrow.sol";
 //import ".././node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
