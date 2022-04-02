@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.1;
 
 import "../interfaces/IAuction.sol";
 import "./AuctionEscrow.sol";
@@ -16,7 +16,7 @@ struct AuctionBid{
 enum AuctionStatus { Open, Finished }
 
 
-abstract contract Auction is IAuction, AuctionEscrow{
+abstract contract Auction is AuctionEscrow{
     event AuctionBidSuccessful(address indexed _bidderAddress, uint256 indexed _auctionId, uint bidValue, bool reserveMet);
     event AuctionEndedWithWinningBid(address indexed _winningBidder, uint256 indexed _auctionId);
     event AuctionEndedWithNoWinningBid(uint256 indexed _auctionId);
