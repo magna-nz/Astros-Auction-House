@@ -263,19 +263,34 @@ contract("AuctionHouse", async (accounts) => {
        assert.equal(await auctionInstance.depositsOf(accounts[2]), 0);
     });
 
-    // it("place auction acc[0], no bidders, end acc[0], txn successful, auction closed", async () => {
-    //     truffleAssert.eventEmitted(await this.ah.createPhysicalAuction(100,50, "0x33333", 10420436704, {from: accounts[0]}),
-    //                             "AuctionCreated");
+    it("place auction (acc[0]), no bidders, end auction (acc[0]), txn successful, auction closed", async () => {
+        var endTime = 10420436704;
+        var startPrice = 100;
+        var reservePrice = 256;
+        //var firstBidValue = 10000000;
+        //var secondBidValue = 12000000;
 
-    //     truffleAssert.eventEmitted(await this.ah.endAuction(1, {from:accounts[0]}),
-    //                             "AuctionEndedWithNoWinningBid");
+        //act
+        truffleAssert.eventEmitted(
+            await this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}),
+                "AuctionCreated", (ev) => {
+                    contractAddress = ev._auctionContract;
+                    return ev._endTime == endTime && ev._auctionOwner == accounts[0]
+                            && ev._auctionId == 1 && ev._startPrice == startPrice
+                            && ev._reservePrice == reservePrice;
+                                });
+        
+        await this.ah.endPhysicalAuction(1,  {from: accounts[0]});
 
-
-    //     assert.equal(await this.ah.lockedBalanceInBids(accounts[0]), 0);
-
-    //     //somehow get contract instance and check here if auction has ended
-
-    //  });
+        //assert
+        var auctionInstance = await Auction.at(contractAddress);
+        assert.equal(await auctionInstance.getBidCount(), 0);
+        assert.equal(await auctionInstance.endTime(), endTime);
+        assert.equal(await auctionInstance.auctionStatus(), '1');
+        assert.equal(await auctionInstance.depositsOf(accounts[0]), 0);
+        assert.equal(await auctionInstance.depositsOf(accounts[1]), 0);
+        assert.equal(await auctionInstance.depositsOf(accounts[2]), 0);
+     });
 
     // it("place auction acc[0], bid acc[1], bid acc[2], end acc[0], not meet reserve - refund all bidders", async () => {
     //     var firstBidderAmount = 10000000;
