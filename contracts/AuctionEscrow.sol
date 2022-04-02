@@ -5,7 +5,13 @@ import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/Address.sol";
 
-
+/*
+* This escrow contract copied alot from Open Zeppelin Escrow contract
+* I need extra functionality, such as moving funds between winning auctions
+* And auction owners. I did not want to edit the Escrow smart contract
+* and inheriting didn't make much sense because I want to keep the _deposits
+* array private
+*/
 contract AuctionEscrow is Ownable {
     using Address for address payable;
     using SafeMath for uint256;

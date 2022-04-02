@@ -13,11 +13,7 @@ var end = await ins.endPhysicalAuction(1, {from:accounts[0]});
 //var end = await ins.endAuction(1, {from:accounts[0], value:10000000});
 
 //check available balance
-var withdrawBalance0 = await ins.payments(accounts[0]);
-var withdrawalBalance1 = await ins.payments(accounts[1]);
-var withdrawal = await ins.withdrawPayments(accounts[0], {from: accounts[0]});
-var withdraww1 = await ins.withdrawPayments(accounts[1], {from: accounts[1]});
-
+var withdrawal = await ins.withdrawPayments(1, accounts[0]);
 
 //after auction ends
 var lockedBalanceForBidder = await ins.lockedBalanceInBids(accounts[0]);
@@ -29,8 +25,8 @@ var txn = await ins.createPhysicalAuction.estimateGas(100,50,"0x000", 1010420436
 
 
 //contract instance
-var auctionInstance = await Auction.at("0x02b6f5a377d207311fc5fbd114f08b2b13f5145a");
-var balance = await web3.eth.getBalance("0x02b6f5a377d207311fc5fbd114f08b2b13f5145a");
+var auctionInstance = await Auction.at("0x9654236de92db38faf4568272dee6d2a91f1d0d9");
+var balance = await web3.eth.getBalance("0x9654236de92db38faf4568272dee6d2a91f1d0d9");
 var bidCount = await auctionInstance.getBidCount().then(d => { console.log(d.toString())});
 var endTime = await auctionInstance.endTime().then(d => { console.log(d.toString())});
 var getLastBid = await auctionInstance.getLastBid().then(d => { console.log(d.toString())});

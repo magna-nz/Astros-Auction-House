@@ -145,6 +145,14 @@ abstract contract Auction is IAuction, AuctionEscrow{
     function endAuction(address caller) external payable virtual;
     function processPayouts() internal virtual;
 
+
+    //Anyone can call withdrawal to remove funds directly, or do it via the auctionhouse.
+    //Only this contract can withdraw funds from escrow.
+    function withdraw(address payable payee) public override {
+        require(this.hasEnded(), "Auction is still running. Cannot withdraw bid");
+        require(super.depositsOf(payee) > 0, "Nothing to withdraw");
+        super.withdraw(payee);
+    }
     // function withdraw(address payable payee) public override{
     //     //require(caller == payee, "Can only trigger funds for your own address");
     //     require(super.depositsOf(payee) > 0, "Nothing to withdraw");
