@@ -21,7 +21,7 @@ contract PhysicalAuction is Auction{
     //function endAuction(uint256 _auctionId) internal virtual;
     //function placeBid(uint256 _auctionId) internal virtual;whenNotPaused //
 
-    function endAuction(address caller) isAuctionHouse external override {
+    function endAuction(address caller) isAuctionHouse external payable override {
         require(caller == this.auctionOwner(), "only the auction owner can close an auction");
         require(this.auctionStatus() != AuctionStatus.Finished, "Auction is already finished");
         super.close();
@@ -52,7 +52,10 @@ contract PhysicalAuction is Auction{
             //lockedBalanceInBids[lastBid.bidder] -= (lastBid.bid);
 
             //move to available to withdraw
-            super._asyncTransfer(this.auctionOwner(), lastBid.bid);
+            //todo: the money should be in the contract now
+            //super._asyncTransfer(this.auctionOwner(), lastBid.bid);
+// auction.placeBid{value:msg.value}(msg.sender, msg.value);
+            //super.deposit{value:lastBid.bid()}(this.auctionOwner(), lastBid.bid);
             //auctionsWonByUser[lastBid.bidder].push(auction.auctionId());
             emit AuctionEndedWithWinningBid(lastBid.bidder, this.auctionId());
         }
@@ -76,12 +79,16 @@ contract PhysicalAuction is Auction{
             //we need proper exception handling here for if there isn't enough in locked balance. shouldnt ever be the case
             //lockedBalanceInBids[currentBid.bidder] -= currentBid.bid;
 
-            super._asyncTransfer(currentBid.bidder, currentBid.bid);
+            //super._asyncTransfer(currentBid.bidder, currentBid.bid);
 
             emit AuctionBidRefunded(currentBid.bidder, this.auctionId());
-            emit AvailableBalanceUpdated(currentBid.bidder, currentBid.bid, super.payments(currentBid.bidder));
+            emit AvailableBalanceUpdated(currentBid.bidder, currentBid.bid, super.depositsOf(currentBid.bidder));
         }
     }
+
+    // function _asyncTransfer(address dest, uint256 amount) internal payable override  {
+    //     super.deposit{value: amount}(dest);
+    // }
 
     function placeBid(address bidder, uint256 bidAmount) isAuctionHouse public payable override  {
         //PhysicalAuction auction = PhysicalAuction(physicalAuctions[_auctionId]);
@@ -99,17 +106,17 @@ contract PhysicalAuction is Auction{
         
         //add the bid to the auction
         AuctionBid memory newAuctionBid = AuctionBid({
-            bid: bidAmount,
+            bid: msg.value,
             bidder: bidder,
             timestamp: block.timestamp
         });
 
-        
-
+        //auction.placeBid{value:msg.value}(msg.sender, msg.value);
         super.placeBidOnAuction(newAuctionBid);
         super.updateIfReserveMet(bidAmount, bidder);
         //super._asyncTransfer()
-        super._asyncTransfer(newAuctionBid.bidder, newAuctionBid.bid);
+        //todo: do we need to move ether from here to the escrow contract?
+        super.deposit(newAuctionBid.bidder);//, newAuctionBid.bid);
 
         //AuctionHouse ah = AuctionHouse(this.auctionHouse());
         //ah.auctionsBidOnByUser(msg.sender, auctionId);

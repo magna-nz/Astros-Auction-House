@@ -139,7 +139,7 @@ contract AuctionHouse is ReentrancyGuard, Ownable, Pausable{
 
     function withdrawPayments(uint _auctionId, address payable payee) public nonReentrant isContractActive {
         PhysicalAuction auction = physicalAuctions[_auctionId];
-        auction.withdrawPayments(payee);
+        //auction.withdrawPayments(payee);
     }
 
 

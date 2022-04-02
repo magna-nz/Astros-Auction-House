@@ -2,8 +2,8 @@
 pragma solidity ^0.8.9;
 
 import "../interfaces/IAuction.sol";
-import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
-import ".././node_modules/@openzeppelin/contracts/security/PullPayment.sol";
+import ".././node_modules/@openzeppelin/contracts/utils/escrow/Escrow.sol";
+// import ".././node_modules/@openzeppelin/contracts/security/PullPayment.sol";
 
 
 struct AuctionBid{
@@ -15,7 +15,7 @@ struct AuctionBid{
 enum AuctionStatus { Open, Finished }
 
 
-abstract contract Auction is IAuction, PullPayment{
+abstract contract Auction is IAuction, Escrow{
     event AuctionBidSuccessful(address indexed _bidderAddress, uint256 indexed _auctionId, uint bidValue, bool reserveMet);
     event AuctionEndedWithWinningBid(address indexed _winningBidder, uint256 indexed _auctionId);
     event AuctionEndedWithNoWinningBid(uint256 indexed _auctionId);
@@ -65,6 +65,21 @@ abstract contract Auction is IAuction, PullPayment{
         //auctionHouse = _auctionHouse;
     }
 
+    // function _asyncTransfer(address dest, uint256 amount) internal payable override  {
+    //     super._asyncTransfer{value: amount}(dest);
+    // }
+
+    // function deposit(address payee) public payable virtual onlyOwner {
+    //     uint256 amount = msg.value;
+    //     _deposits[payee] += amount;
+    //     emit Deposited(payee, amount);
+    // }
+
+    // function deposit(address payee)  public payable override onlyOwner{
+
+    // }
+
+    //safe math  here
    function getLastBid() external view returns(AuctionBid memory){
        return bids[bids.length-1];
    }
@@ -92,7 +107,7 @@ abstract contract Auction is IAuction, PullPayment{
 
    function removeBid() external returns (bool){
 
-   } 
+   }
 
    function getBidCount() public view returns(uint count) {
     return bids.length;
@@ -126,17 +141,17 @@ abstract contract Auction is IAuction, PullPayment{
     // }
 
     function placeBid(address bidder, uint bidAmount) external payable virtual;
-    function endAuction(address caller) external virtual;
+    function endAuction(address caller) external payable virtual;
     function processPayouts() internal virtual;
 
-    function withdrawPayments(address payable payee) public override {
+    function withdraw(address payable payee) public override{
         //require(caller == payee, "Can only trigger funds for your own address");
-        require(this.payments(payee) > 0, "Nothing to withdraw");
+        require(super.depositsOf(payee) > 0, "Nothing to withdraw");
 
-        super.withdrawPayments(payee);
+        super.withdraw(payee);
     }
-    
-    //  { whenNotPaused isContractActive 
+
+    //  { whenNotPaused isContractActive
     //     PhysicalAuction auction = PhysicalAuction(physicalAuctions[_auctionId]);
     //     require(auction.auctionOwner() != msg.sender, "You can't bid on your own auction");
     //     require(block.timestamp <= auction.endTime(), "Auction has expired.");
@@ -146,10 +161,10 @@ abstract contract Auction is IAuction, PullPayment{
     //     //get the last bid and compare it if there's already a bid on it
     //     if (auction.getBidCount() != 0){
     //         AuctionBid memory lastAuctionBid = auction.getBidByIndex(auction.getBidCount().sub(1)); //todo: safemath
-    //         //lastAuctionBid = auction.bids[auction.getBidCount() - 1];   
+    //         //lastAuctionBid = auction.bids[auction.getBidCount() - 1];
     //         require(msg.value > lastAuctionBid.bid, "bid not high enough");
     //     }
-        
+
     //     //add the bid to the auction
     //     AuctionBid memory newAuctionBid = AuctionBid({
     //         bid: msg.value,
@@ -166,7 +181,7 @@ abstract contract Auction is IAuction, PullPayment{
 
     //     //keep a track of locked funds for someone bidding
     //     lockedBalanceInBids[msg.sender] += msg.value;
-        
+
     //     emit AuctionBidSuccessful(msg.sender, _auctionId, msg.value, auction.reserveMet());
     // }
 }

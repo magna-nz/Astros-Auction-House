@@ -9,7 +9,8 @@ var bid2 = await ins.placeBidPhysicalAuction(1, {from:accounts[2], value:1100000
 // var bid1 = await ins.placeBid(1, {from:accounts[1], value:100000000000000000});
 // var bid2 = await ins.placeBid(1, {from:accounts[2], value:110000000000000000});
 
-var end = await ins.endAuction(1, {from:accounts[0]});
+var end = await ins.endPhysicalAuction(1, {from:accounts[0]});
+//var end = await ins.endAuction(1, {from:accounts[0], value:10000000});
 
 //check available balance
 var withdrawBalance0 = await ins.payments(accounts[0]);
@@ -26,9 +27,11 @@ var avail1 = await ins.availableBalanceToWithdraw(accounts[2]);
 var txn = await ins.createPhysicalAuction.estimateGas(100,50,"0x000", 1010420436704);
 
 
+
 //contract instance
-var auctionInstance = await Auction.at("0x7B0a46913da59d1a07192000d48F9692eFE91771");
-var bidCount = await auctionInstance.getBidCount().then(d => { console.log(d.toString())}); //we have to unwrap the promise
+var auctionInstance = await Auction.at("0xa6ca7d0775c3bac8e392e1e43f5e0390eb8590fd");
+var balance = await web3.eth.getBalance("0xa6ca7d0775c3bac8e392e1e43f5e0390eb8590fd");
+var bidCount = await auctionInstance.getBidCount().then(d => { console.log(d.toString())});
 var endTime = await auctionInstance.endTime().then(d => { console.log(d.toString())});
 var getLastBid = await auctionInstance.getLastBid().then(d => { console.log(d.toString())});
 var status = await auctionInstance.auctionStatus();
