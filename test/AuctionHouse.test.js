@@ -22,11 +22,13 @@ contract("AuctionHouse", async (accounts) => {
     });
 
     it("can successfully create auction", async () => {
+        //arrange
         var contractAddress;
         var endTime = 10420436704;
         var startPrice = 100;
         var reservePrice = 256;
 
+        //act
         truffleAssert.eventEmitted(
             await this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}),
                 "AuctionCreated", (ev) => {
@@ -36,30 +38,13 @@ contract("AuctionHouse", async (accounts) => {
                             && ev._reservePrice == reservePrice;
                                 });
                                 
-        //get auction instance
+        //assert
         var auctionInstance = await Auction.at(contractAddress);
-        //var balance = await web3.eth.getBalance(contractAddress);
-        var bidCount = await auctionInstance.getBidCount();//.then(d => { console.log(d.toString())});   
-        var endTime = await auctionInstance.endTime();//;.then(d => { console.log(d.toString())});
-        var status = await auctionInstance.auctionStatus();
-        var winner = await auctionInstance.auctionWinner(); //0 address            
-
-        var depositsOfAcc0 = await auctionInstance.depositsOf(accounts[0]); //0
-        var depositsOfAcc1 = await auctionInstance.depositsOf(accounts[1]); //0
-
-        assert.equal(bidCount, 0);
-        assert.equal(endTime, 10420436704);
-        assert.equal(status, '0');
-        //assert.equal(winner, address(0));
-        assert.equal(depositsOfAcc0, 0);
-        assert.equal(depositsOfAcc1, 0);
-
-
-
-        //assert all the values
-
-        //assert one auctions was created
-        //assert.equal(await this.ah.numberOfAuctions(), 1);
+        assert.equal(await auctionInstance.getBidCount(), 0);
+        assert.equal(await auctionInstance.endTime(), endTime);
+        assert.equal(await auctionInstance.auctionStatus(), '0');
+        assert.equal(await auctionInstance.depositsOf(accounts[0]), 0);
+        assert.equal(await auctionInstance.depositsOf(accounts[1]), 0);
     });
 
     // it("auction owner cant bid on his own auction", async () => {
