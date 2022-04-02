@@ -79,28 +79,37 @@ contract("AuctionHouse", async (accounts) => {
         assert.equal(await auctionInstance.depositsOf(accounts[1]), 0);
     });
 
-    // it("can make bid on an auction with no bids", async () => {
+    it("can make bid on an auction with no bids", async () => {
 
-    //     truffleAssert.eventEmitted(await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704, {from: accounts[0]}),
-    //                             "AuctionCreated");
-    //     //todo: get the auctionid from the log event
+        //arrange
+        var contractAddress;
+        var endTime = 10420436704;
+        var startPrice = 100;
+        var reservePrice = 256;
+        var firstBidValue = 10000000;
 
-    //     //place the bid
-    //     truffleAssert.eventEmitted(await this.ah.placeBid(1,  {from: accounts[1], value:10000000}),
-    //                             "AuctionBidSuccessful");
+        //act
+        truffleAssert.eventEmitted(
+            await this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}),
+                "AuctionCreated", (ev) => {
+                    contractAddress = ev._auctionContract;
+                    return ev._endTime == endTime && ev._auctionOwner == accounts[0]
+                            && ev._auctionId == 1 && ev._startPrice == startPrice
+                            && ev._reservePrice == reservePrice;
+                                });
 
-    //     //checked lockedbalance
-    //     var lockedBalanceForBidder = await this.ah.lockedBalanceInBids(accounts[1]);
-    //     assert.equal(lockedBalanceForBidder, 10000000);
+        //place the bid
+        //todo: check events emitted from child contracts.
+        await this.ah.placeBidPhysicalAuction(1,  {from: accounts[1], value: firstBidValue});
 
-    //     var lockedBalanceForOwner = await this.ah.lockedBalanceInBids(accounts[0]);
-    //     assert.equal(lockedBalanceForOwner, 0);
-
-    //     //check bid length on auction contract, should be 1
-
-    //     //check auctionsbidbyuser has one item in the array
-
-    // });
+        //assert
+        var auctionInstance = await Auction.at(contractAddress);
+        assert.equal(await auctionInstance.getBidCount(), 1);
+        assert.equal(await auctionInstance.endTime(), endTime);
+        assert.equal(await auctionInstance.auctionStatus(), '0');
+        assert.equal(await auctionInstance.depositsOf(accounts[0]), 0);
+        assert.equal(await auctionInstance.depositsOf(accounts[1]), firstBidValue);
+    });
 
     // it("make a bid less than the current high bid and revert", async () => {
 
