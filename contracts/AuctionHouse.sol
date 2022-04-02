@@ -31,11 +31,11 @@ contract AuctionHouse is ReentrancyGuard, Ownable, Pausable{
     }
 
 
-    function pauseContract() onlyOwner public {
+    function pauseContract() onlyOwner external {
         super._pause();
     }
 
-    function unpauseContract() onlyOwner public {
+    function unpauseContract() onlyOwner external {
         super._unpause();
     }
 
@@ -43,16 +43,16 @@ contract AuctionHouse is ReentrancyGuard, Ownable, Pausable{
     Creates a physical auction
     */
 
-    function createPhysicalAuction(uint256 _reservePrice, uint256 _startPrice, bytes16 _auctionName, uint64 _endTime) whenNotPaused isContractActive external {
-        require(_startPrice < _reservePrice, "Invalid start price");
+    function createPhysicalAuction(uint256 reservePrice, uint256 startPrice, bytes16 auctionName, uint64 endTime) whenNotPaused isContractActive external {
+        require(startPrice < reservePrice, "Invalid start price");
         _auctionIdCounter.increment();
 
-        PhysicalAuction auction = new PhysicalAuction(_reservePrice, _startPrice, address(this),
-                                                 _auctionName, _auctionIdCounter.current(), _endTime, msg.sender);
+        PhysicalAuction auction = new PhysicalAuction(reservePrice, startPrice, address(this),
+                                                 auctionName, _auctionIdCounter.current(), endTime, msg.sender);
 
         physicalAuctions[_auctionIdCounter.current()] = auction;
         
-        emit AuctionCreated(msg.sender, _auctionIdCounter.current(), _startPrice, _reservePrice, address(auction), _endTime);
+        emit AuctionCreated(msg.sender, _auctionIdCounter.current(), startPrice, reservePrice, address(auction), endTime);
     }
 
     /*
@@ -61,20 +61,20 @@ contract AuctionHouse is ReentrancyGuard, Ownable, Pausable{
     In future, I would like to read from an oracle about the state and update it that way
     */
 
-    function endPhysicalAuction(uint256 _auctionId) isContractActive external {
-        PhysicalAuction auction = physicalAuctions[_auctionId];
+    function endPhysicalAuction(uint256 auctionId) isContractActive external {
+        PhysicalAuction auction = physicalAuctions[auctionId];
         require(address(auction) != address(0), "Auction ID does not exist");
         auction.endAuction(msg.sender);
     }
 
-    function placeBidPhysicalAuction(uint256 _auctionId) whenNotPaused isContractActive external payable {
-        PhysicalAuction auction = physicalAuctions[_auctionId];
+    function placeBidPhysicalAuction(uint256 auctionId) whenNotPaused isContractActive external payable {
+        PhysicalAuction auction = physicalAuctions[auctionId];
         require(address(auction) != address(0), "Auction ID does not exist");
         auction.placeBid{value:msg.value}(msg.sender, msg.value);
     }
 
-    function withdrawPayments(uint _auctionId, address payable payee) public nonReentrant isContractActive {
-        PhysicalAuction auction = physicalAuctions[_auctionId];
+    function withdrawPayments(uint auctionId, address payable payee) external isContractActive {
+        PhysicalAuction auction = physicalAuctions[auctionId];
         auction.withdraw(payee);
     }
 }

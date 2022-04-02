@@ -26,7 +26,7 @@ contract PhysicalAuction is Auction{
         processPayouts();
     }
 
-    function processPayouts() internal override {
+    function processPayouts() private {
         AuctionBid[] memory auctionBids = super.getBids();
         
         //if theres no bids, theres nothing to payout
@@ -69,7 +69,7 @@ contract PhysicalAuction is Auction{
         }
     }
 
-    function placeBid(address bidder, uint256 bidAmount) isAuctionHouse public payable override  {
+    function placeBid(address bidder, uint256 bidAmount) isAuctionHouse external payable override  {
         require(this.auctionOwner() != bidder, "You can't bid on your own auction");
         require(block.timestamp <= this.endTime(), "Auction has expired.");
         require(this.auctionStatus() != AuctionStatus.Finished, "You can't bid on an auction that's ended");

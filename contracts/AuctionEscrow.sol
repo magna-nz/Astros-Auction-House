@@ -4,15 +4,17 @@ pragma solidity ^0.8.9;
 import ".././node_modules/@openzeppelin/contracts/access/Ownable.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol";
 import ".././node_modules/@openzeppelin/contracts/utils/Address.sol";
+import ".././node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 
 /*
-* This escrow contract copied alot from Open Zeppelin Escrow contract
+* This escrow contract copied most from Open Zeppelin Escrow contract
 * I need extra functionality, such as moving funds between winning auctions
 * And auction owners. I did not want to edit the Escrow smart contract
 * and inheriting didn't make much sense because I want to keep the _deposits
 * array private
 */
-contract AuctionEscrow is Ownable {
+contract AuctionEscrow is Ownable, ReentrancyGuard{
     using Address for address payable;
     using SafeMath for uint256;
 
@@ -35,8 +37,8 @@ contract AuctionEscrow is Ownable {
     function moveFundsBetween(address from, address to, uint256 amount) internal virtual onlyOwner{
         //check theres enough balances
         require(_deposits[from] >= amount, "not enough funds to move");
-        assert(_deposits[from].sub(amount) >= 0);
-        require((_deposits[to] + amount) >= 0, "to address should be over 0 if moving funds");
+        // assert(_deposits[from].sub(amount) >= 0);
+        // require((_deposits[to] + amount) >= 0, "to address should be over 0 if moving funds");
 
         //do the swap
         _deposits[from] -= amount;
@@ -45,7 +47,7 @@ contract AuctionEscrow is Ownable {
         emit FundsMoved(from, to, amount);
     }
 
-    function withdraw(address payable payee) public virtual onlyOwner {
+    function withdraw(address payable payee) public virtual onlyOwner nonReentrant{
         uint256 payment = _deposits[payee];
 
         _deposits[payee] = 0;

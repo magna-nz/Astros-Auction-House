@@ -3,6 +3,8 @@ pragma solidity ^0.8.9;
 
 import "../interfaces/IAuction.sol";
 import "./AuctionEscrow.sol";
+//import ".././node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 
 
 struct AuctionBid{
@@ -39,7 +41,7 @@ abstract contract Auction is IAuction, AuctionEscrow{
     address public auctionOwner;
     AuctionStatus public auctionStatus;
     address public auctionHouse;
-    address private ahAddress;
+    //address private ahAddress;
     address private _highestBidder;
     address public auctionWinner;
 
@@ -84,13 +86,13 @@ abstract contract Auction is IAuction, AuctionEscrow{
        return bids;
    }
 
-   function getBidCount() public view returns(uint count) {
+   function getBidCount() external view returns(uint count) {
         return bids.length;
     }
 
-    function getBidByIndex(uint _index) public view returns (AuctionBid memory){
-        assert(_index <= bids.length);
-        return bids[_index];
+    function getBidByIndex(uint index) external view returns (AuctionBid memory){
+        assert(index <= bids.length);
+        return bids[index];
     }
 
     function placeBidOnAuction(AuctionBid memory auctionBid) internal {
@@ -104,19 +106,19 @@ abstract contract Auction is IAuction, AuctionEscrow{
         }
     }
 
-    function setAuctionStatus(AuctionStatus status) internal {
-        require(this.auctionStatus() != AuctionStatus.Finished, "Auction is already finished");
-        auctionStatus = status;
-    }
+    // function setAuctionStatus(AuctionStatus status) internal {
+    //     require(this.auctionStatus() != AuctionStatus.Finished, "Auction is already finished");
+    //     auctionStatus = status;
+    // }
     
     function placeBid(address bidder, uint bidAmount) external payable virtual;
     function endAuction(address caller) external payable virtual;
-    function processPayouts() internal virtual;
+    //function processPayouts() internal virtual;
 
 
     //Anyone can call withdrawal to remove funds directly, or do it via the auctionhouse.
     //Only this contract can withdraw funds from escrow.
-    function withdraw(address payable payee) public override {
+    function withdraw(address payable payee) public override{
         require(this.hasEnded(), "Auction is still running. Cannot withdraw bid");
         require(super.depositsOf(payee) > 0, "Nothing to withdraw");
         super.withdraw(payee);
