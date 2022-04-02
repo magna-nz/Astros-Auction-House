@@ -1,10 +1,12 @@
 # Auction House v2
 
-Users can create an auction for selling something (right now just a text name of an auction).
+Users can create an auction for selling something (right now just physical auctions).
 
 Other users can bid on these auctions.
 
-The auction can end and if reserve is met the winning bidder pays out to the auctionowner.
+The auction can end and if reserve is met the winning bidder pays out to the auction owner.
+
+Customers funds held in Escrow contract and available to withdraw based on whether they win the auction or reserve is met.
 
 **ERC721 implementation for NFTs in upcoming release**
 
