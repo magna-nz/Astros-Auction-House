@@ -21,15 +21,11 @@ contract PhysicalAuction is Auction{
     /// @notice End a physical auction.
     /// @dev End a physical auction. Overriden method.
     function endAuction(address caller) isAuctionHouse external payable override {
-        require(caller == this.auctionOwner(), "only the auction owner can close an auction");
+        require(caller == this.auctionOwner(), "Only the auction owner can close an auction");
         require(this.auctionStatus() != AuctionStatus.Finished, "Auction is already finished");
         super.close();
-        require(this.auctionStatus() == AuctionStatus.Finished, "Auction isn't finished yet");
-        processPayouts();
-    }
-
-    function processPayouts() private {
         AuctionBid[] memory auctionBids = super.getBids();
+        
         //if theres no bids, theres nothing to payout
         if (auctionBids.length == 0){
             emit AuctionEndedWithNoWinningBid(this.auctionId());
@@ -70,18 +66,20 @@ contract PhysicalAuction is Auction{
         }
     }
 
-    /// @notice Get a bid by its index
+    /// @notice Place bid on an auction
     /// @dev Place bid on an auction. Overriden method
+    /// @param bidder Address of the bidder
+    /// @param bidAmount Amount of bid
     function placeBid(address bidder, uint256 bidAmount) isAuctionHouse external payable override  {
         require(this.auctionOwner() != bidder, "You can't bid on your own auction");
-        require(block.timestamp <= this.endTime(), "Auction has expired.");
+        require(block.timestamp <= this.endTime(), "Auction has expired");
         require(this.auctionStatus() != AuctionStatus.Finished, "You can't bid on an auction that's ended");
         require(bidAmount > this.startPrice(), "Auction must be greater than start price");
 
         //get the last bid and compare it if there's already a bid on it
         if (this.getBidCount() != 0){
             AuctionBid memory lastAuctionBid = this.getBidByIndex(this.getBidCount().sub(1));
-            require(bidAmount > lastAuctionBid.bid, "bid not high enough");
+            require(bidAmount > lastAuctionBid.bid, "Bid not high enough");
         }
         
         //add the bid to the auction
