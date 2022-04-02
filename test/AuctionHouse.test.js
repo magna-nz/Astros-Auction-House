@@ -468,30 +468,44 @@ contract("AuctionHouse", async (accounts) => {
         //todo: improvement - check the account new balance is ( (prevBalance + withdrawAmount) - gasfee))
     });
 
-    // it("pause contract as not owner, revert should happen", async () => {//Ownable: caller is not the owner
-    //     await truffleAssert.reverts(
-    //         this.ah.pauseContract({from: accounts[1]}), "Ownable: caller is not the owner"
-    //     );
-    // });
+    it("pause contract as not owner, revert should happen", async () => {
+        await truffleAssert.reverts(
+            this.ah.pauseContract({from: accounts[1]}), "Ownable: caller is not the owner"
+        );
+    });
 
-    // it("pause contract as owner, check if paused, should be true", async () => {
-    //     truffleAssert.eventEmitted(await this.ah.pauseContract({from: accounts[0]}),
-    //                             "Paused");
+    it("pause contract as owner, check if paused, should be true", async () => {
+        truffleAssert.eventEmitted(await this.ah.pauseContract({from: accounts[0]}),
+                                "Paused");
 
-    //     assert.equal(await this.ah.paused(), true);
-    // });
+        assert.equal(await this.ah.paused(), true);
+    });
 
-    // it("pause contract as owner, try place auction, revert", async () => {
-    //     truffleAssert.eventEmitted(await this.ah.pauseContract({from: accounts[0]}),
-    //                             "Paused");
+    it("pause contract as owner, try create auction, revert", async () => {
+        //arrange
+        var endTime = 10420436704;
+        var startPrice = 100;
+        var reservePrice = 256;
 
-    //     await truffleAssert.reverts(
-    //         this.ah.placeBid(1,  {from: accounts[0], value:10000000}), "Pausable: paused"
-    //     );
+        truffleAssert.eventEmitted(await this.ah.pauseContract({from: accounts[0]}),
+                                "Paused");
 
-    //     //assert no auctions were created
-    //     assert.equal(await this.ah.numberOfAuctions(), 0);
-    // });
+        await truffleAssert.reverts(
+            this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}), "Pausable: paused"
+        );
+
+        
+        // //assert
+        // var auctionInstance = await Auction.at(contractAddress);
+        // assert.equal(await auctionInstance.getBidCount(), 2);
+        // assert.equal(await auctionInstance.endTime(), endTime);
+        // assert.equal(await auctionInstance.auctionStatus(), '1');
+        // assert.equal(await auctionInstance.depositsOf(accounts[0]), 13000000);
+        // assert.equal(await auctionInstance.depositsOf(accounts[1]), 12000000);
+        // assert.equal(await auctionInstance.depositsOf(accounts[2]), 0);
+        // //assert no auctions were created
+        // assert.equal(await this.ah.numberOfAuctions(), 0);
+    });
 
     // it("place auction, pause as owner, try place bid, revert", async () => {
     //     var firstBidderAmount = "100000000000000000";
