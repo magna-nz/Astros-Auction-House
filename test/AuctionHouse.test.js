@@ -211,22 +211,45 @@ contract("AuctionHouse", async (accounts) => {
         assert.equal(await web3.eth.getBalance(auctionInstance.address), (firstBidValue + secondBidValue));
     });
 
-    // it("end auction with auction id that doesn't exist - revert", async () => {
-    //     //auctionId 1 is created
-    //     await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704 ,{from: accounts[0]});
-    //     await expectRevert.unspecified(
-    //         this.ah.endAuction(4,  {from: accounts[0]})
-    //     );
-    // });
+    it("end auction with auction id that doesn't exist - revert", async () => {
+        var endTime = 10420436704;
+        var startPrice = 100;
+        var reservePrice = 256;
 
-    // it("place auction acc[0], bid acc[1], end acc[1] - revert", async () => {
-    //    //auctionId 1 is created
-    //    await this.ah.createPhysicalAuction(256, 250, "0x543645645", 10420436704 ,{from: accounts[0]});
+        //act
+        truffleAssert.eventEmitted(
+            await this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}),
+                "AuctionCreated", (ev) => {
+                    contractAddress = ev._auctionContract;
+                    return ev._endTime == endTime && ev._auctionOwner == accounts[0]
+                            && ev._auctionId == 1 && ev._startPrice == startPrice
+                            && ev._reservePrice == reservePrice;
+                                });
 
-    //    await expectRevert.unspecified(
-    //        this.ah.endAuction(1,  {from: accounts[1]})
-    //    );
-    // });
+        await expectRevert.unspecified(
+            this.ah.endPhysicalAuction(4,  {from: accounts[0]})
+        );
+    });
+
+    it("place auction acc[0], bid acc[1], end acc[1] - revert because cant end someone elses auction", async () => {
+        var endTime = 10420436704;
+        var startPrice = 100;
+        var reservePrice = 256;
+
+        //act
+        truffleAssert.eventEmitted(
+            await this.ah.createPhysicalAuction(reservePrice, startPrice, "0x543645645", endTime, {from: accounts[0]}),
+                "AuctionCreated", (ev) => {
+                    contractAddress = ev._auctionContract;
+                    return ev._endTime == endTime && ev._auctionOwner == accounts[0]
+                            && ev._auctionId == 1 && ev._startPrice == startPrice
+                            && ev._reservePrice == reservePrice;
+                                });
+
+       await expectRevert.unspecified(
+            this.ah.endPhysicalAuction(1,  {from: accounts[1]})
+       );
+    });
 
     // it("place auction acc[0], no bidders, end acc[0], txn successful, auction closed", async () => {
     //     truffleAssert.eventEmitted(await this.ah.createPhysicalAuction(100,50, "0x33333", 10420436704, {from: accounts[0]}),
