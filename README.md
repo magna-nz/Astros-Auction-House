@@ -33,3 +33,5 @@ Prerequisites:
 Ropsten contract: https://ropsten.etherscan.io/address/0x8d4c63eafceeb2b03c394fae9809bcee026dce03
 
 Kovan contract: https://kovan.etherscan.io/address/0x8d4c63eafceeb2b03c394fae9809bcee026dce03
+
+Rinkeby contract: https://rinkeby.etherscan.io/address/0x8d4c63eafceeb2b03c394fae9809bcee026dce03
