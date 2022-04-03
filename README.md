@@ -1,6 +1,6 @@
-# Auction House v2
+# Astro's Auction House
 
-Users can create an auction for selling something (right now just physical auctions).
+Users can create an auction for selling something (right now just physical auctions, NFTs with ERC721 coming).
 
 Other users can bid on these auctions.
 
