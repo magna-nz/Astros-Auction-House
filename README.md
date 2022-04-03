@@ -29,3 +29,5 @@ Prerequisites:
 3. `truffle test` to run all tests
 4. `truffle console` to connect to Ganache RPC. Make sure Ganache is open.
 5. Interact with deployed contracts
+
+Ropsten contract: https://ropsten.etherscan.io/address/0x8d4c63eafceeb2b03c394fae9809bcee026dce03
