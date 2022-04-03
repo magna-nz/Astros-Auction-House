@@ -8,7 +8,7 @@ Astros Auction House is an EVM-compatible Auction House made for users to buy an
 
 * When the auction has ended, payout winners or refund customers.
 
-Customers funds held in Escrow contract and available to withdraw after an auction has ended. It uses a pull model for this.
+* Customers funds held in Escrow contract and available to withdraw after an auction has ended. It uses a pull model for this.
 
 **ERC721 implementation for NFTs in upcoming release**
 **Proxy upgrade  in upcoming release**
