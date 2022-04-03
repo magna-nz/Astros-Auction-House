@@ -19,7 +19,7 @@ Prerequisites:
 * Truffle v5.0
 * npm
 * Ganache ^7.0
-* solc 0.8.11
+* solc ^0.8.1
 
 ## To install
 
