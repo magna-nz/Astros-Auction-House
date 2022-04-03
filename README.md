@@ -1,23 +1,26 @@
 # Astro's Auction House
 
-Users can create an auction for selling something (right now just physical auctions, NFTs with ERC721 coming).
+Astros Auction House is an EVM-compatible Auction House made for users to buy and sell items on the blockchain.
 
-Other users can bid on these auctions.
+* Users can create an auction for selling something (right now just physical auctions, NFTs with ERC721 coming).
 
-The auction can end and if reserve is met the winning bidder pays out to the auction owner.
+* Other users can bid on these auctions.
 
-Customers funds held in Escrow contract and available to withdraw based on whether they win the auction or reserve is met.
+* When the auction has ended, payout winners or refund customers.
+
+Customers funds held in Escrow contract and available to withdraw after an auction has ended. It uses a pull model for this.
 
 **ERC721 implementation for NFTs in upcoming release**
+**Proxy upgrade  in upcoming release**
 
 Please check the github for any issues and current progress of development
 
 
 ## Prerequisites
 
-* Truffle v5.0
+* Truffle v5.0+
 * npm
-* Ganache ^7.0
+* Ganache 
 * solc ^0.8.1
 
 ## To install
