@@ -25,9 +25,6 @@ abstract contract Auction is AuctionEscrow{
 
     //todo: refactor for variable packing
 
-    ///@notice Check if auction has ended
-    bool public hasEnded;
-
     ///@notice Check if reserve met
     bool public reserveMet;
 
@@ -86,9 +83,9 @@ abstract contract Auction is AuctionEscrow{
 
 
     /// @notice Get the last bid of the auction
-    /// @return The last auction bid
-    function getLastBid() external view returns(AuctionBid memory){
-        require(bids.length > 0, "Cant get last bid unless theres a previous bid");
+    /// @return bid The last auction bid
+    function getLastBid() external view returns(AuctionBid memory bid){
+        require(bids.length > 0, "Cant get last bid");
         return bids[bids.length-1];
     }
 
@@ -100,7 +97,7 @@ abstract contract Auction is AuctionEscrow{
            AuctionBid memory lastBid = this.getLastBid();
            auctionWinner = lastBid.bidder;
        }
-       hasEnded = true;
+       //hasEnded = true;
        auctionStatus = AuctionStatus.Finished;
     }
 
@@ -118,8 +115,8 @@ abstract contract Auction is AuctionEscrow{
 
     /// @notice Get a bid by its index
     /// @dev Get bids by index
-    /// @return An auction bid
-    function getBidByIndex(uint index) external view returns (AuctionBid memory){
+    /// @return bid An auction bid
+    function getBidByIndex(uint index) external view returns (AuctionBid memory bid){
         assert(index <= bids.length);
         return bids[index];
     }
@@ -148,7 +145,7 @@ abstract contract Auction is AuctionEscrow{
     /// @dev Anyone can call withdrawal to remove funds directly, or do it via the auctionhouse.
     /// Only this contract can withdraw funds from escrow.
     function withdraw(address payable payee) public override{
-        require(this.hasEnded(), "Auction is still running. Cannot withdraw bid");
+        require(this.auctionStatus() == AuctionStatus.Finished, "Auction has not finished");
         require(super.depositsOf(payee) > 0, "Nothing to withdraw");
         super.withdraw(payee);
     }

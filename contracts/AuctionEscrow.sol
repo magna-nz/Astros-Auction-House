@@ -42,7 +42,8 @@ contract AuctionEscrow is Ownable, ReentrancyGuard{
     }
 
     ///@dev Check value of funds available for an address in Escrow service
-    function depositsOf(address payee) public view returns (uint256) {
+    ///@notice Returns the deposit amount for the account
+    function depositsOf(address payee) public view returns (uint256 value) {
         return _deposits[payee];
     }
 

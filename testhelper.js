@@ -6,11 +6,8 @@ var txn = await ins.createPhysicalAuction(100,50,"0x33333", 10420436704, {from: 
 //place bid
 var bid1 = await ins.placeBidPhysicalAuction(1, {from:accounts[1], value:100000000000000000});
 var bid2 = await ins.placeBidPhysicalAuction(1, {from:accounts[2], value:110000000000000000});
-// var bid1 = await ins.placeBid(1, {from:accounts[1], value:100000000000000000});
-// var bid2 = await ins.placeBid(1, {from:accounts[2], value:110000000000000000});
 
 var end = await ins.endPhysicalAuction(1, {from:accounts[0]});
-//var end = await ins.endAuction(1, {from:accounts[0], value:10000000});
 
 //check available balance
 var withdrawal = await ins.withdrawPayments(1, accounts[0]);
@@ -40,6 +37,11 @@ await auction2.reserveMet();
 await auction2.auctionOwner();
 var auctionOwner = await auction2.auctionOwner();
 var auctionHouseAddress = await auction2.auctionHouse();
+
+
+//truffle console --network dashboard
+
+
 //Tools:
 // Visualization: 
 // - Surya - Call graphs https://github.com/ConsenSys/surya
