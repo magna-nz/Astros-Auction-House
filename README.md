@@ -15,7 +15,6 @@ Please check the github for any issues and current progress of development
 
 ## Prerequisites
 
-Prerequisites:
 * Truffle v5.0
 * npm
 * Ganache ^7.0
